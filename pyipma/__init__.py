@@ -1,2 +1,2 @@
-from .stations import *
-from .ipma import *
+from .station import *
+from .consts import *
