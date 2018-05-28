@@ -7,7 +7,7 @@ from collections import namedtuple
 from bs4 import BeautifulSoup
 from geopy import distance
 
-from consts import STATIONS
+from .consts import STATIONS
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
