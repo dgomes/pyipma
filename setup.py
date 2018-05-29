@@ -5,7 +5,7 @@ long_description = open('README.md').read()
 
 setup(
     name='pyipma',
-    version='1.0.1',
+    version='1.0.2',
     license='MIT License',
     url='https://github.com/dgomes/pyipma',
     author='Diogo Gomes',
@@ -16,7 +16,11 @@ setup(
     packages=['pyipma'],
     zip_safe=True,
     platforms='any',
-    install_requires=list(val.strip() for val in open('requirements.txt')),
+    install_requires=[
+        'aiohttp',
+        'geopy',
+        'bs4'
+      ],
     classifiers=[
         'License :: OSI Approved :: MIT License',
         'Intended Audience :: Developers',
