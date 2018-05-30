@@ -22,6 +22,8 @@ class Station:
         """Issue API requests."""
         try:
             async with self.websession.request('GET', url) as res:
+                if res.status != 200:
+                    raise Exception("Could not retrieve information from API")
                 if res.content_type == 'application/json':
                     return await res.json()
                 return await res.text()
@@ -63,9 +65,10 @@ class Station:
         #self.idRegiao = closest['idRegiao']
         #self.idAreaAviso = closest['idAreaAviso']
         #self.idConselho = closest['idConcelho']
-        self.globalIdLocal = closest['globalIdLocal']
+        self.globalIdLocal = closest['globalIdLocal']//100 * 100
         #self.idDistrito = closest['idDistrito']
         self.local = closest['local']
+        logger.info("Using %s as weather station", self.local)
         self.latitude = closest['latitude']
         self.longitude = closest['longitude']
 
@@ -78,6 +81,7 @@ class Station:
                                    format(globalIdLocal=self.globalIdLocal))
 
         _forecasts = []
+        print(data)
         for forecast in data['data']:
             Forecast = namedtuple('Forecast', forecast.keys())
             vals = [self._to_number(v) for v in forecast.values()]
@@ -86,11 +90,14 @@ class Station:
 
     async def observation(self):
         """Retrieve current weather observation."""
+        from difflib import SequenceMatcher
 
+        prev = 0
         for station in STATIONS:
-            if self.local in station['name']:
+            similar = SequenceMatcher(None, self.local, station['name']).ratio()
+            if similar > prev:
                 localID = station['localID']
-                break
+                prev = similar
 
         data = await self.retrieve(url=API_OBSERVATION,
                                    params={"selLocal": localID})

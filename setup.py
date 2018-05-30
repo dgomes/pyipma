@@ -5,7 +5,7 @@ long_description = open('README.md').read()
 
 setup(
     name='pyipma',
-    version='1.0.2',
+    version='1.0.4',
     license='MIT License',
     url='https://github.com/dgomes/pyipma',
     author='Diogo Gomes',
