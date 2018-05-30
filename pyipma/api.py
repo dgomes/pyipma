@@ -4,7 +4,7 @@ from collections import namedtuple
 import aiohttp
 
 from .consts import API_DISTRITS, API_FORECAST, API_WEATHER_TYPE,\
-    API_WIND_TYPE, API_XML_OBSERVATION
+    API_WIND_TYPE, API_XML_OBSERVATION, WIND_DIRECTION
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
@@ -90,7 +90,7 @@ class IPMA_API:
             _description =  self.weather_type[forecast['idWeatherType']]
             if forecast['classWindSpeed'] != -99: 
                 _description += ", com vento "+ self.wind_type[forecast['classWindSpeed']] +\
-                                " de " + forecast['predWindDir']
+                                " de " + WIND_DIRECTION[forecast['predWindDir']]
             vals = [self._to_number(v) for v in forecast.values()] + [_description]
             _forecasts.append(Forecast(*vals))
         return _forecasts
