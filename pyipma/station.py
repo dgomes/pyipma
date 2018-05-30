@@ -81,7 +81,6 @@ class Station:
                                    format(globalIdLocal=self.globalIdLocal))
 
         _forecasts = []
-        print(data)
         for forecast in data['data']:
             Forecast = namedtuple('Forecast', forecast.keys())
             vals = [self._to_number(v) for v in forecast.values()]
