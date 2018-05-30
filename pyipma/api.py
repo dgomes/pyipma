@@ -4,7 +4,7 @@ from collections import namedtuple
 import aiohttp
 
 from .consts import API_DISTRITS, API_FORECAST, API_WEATHER_TYPE,\
-    API_XML_OBSERVATION
+    API_WIND_TYPE, API_XML_OBSERVATION
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
@@ -16,6 +16,7 @@ class IPMA_API:
     def __init__(self, websession):
         self.websession = websession
         self.weather_type = None
+        self.wind_type = None
 
     async def retrieve(self, url, **kwargs):
         """Issue API requests."""
@@ -79,12 +80,18 @@ class IPMA_API:
 
         if not self.weather_type:
             await self.weather_type_classe()
-        
+       
+        if not self.wind_type:
+            await self.wind_type_classe()
+
         _forecasts = []
         for forecast in data['data']:
             Forecast = namedtuple('Forecast', list(forecast.keys())+['description'])
-            vals = [self._to_number(v) for v in forecast.values()] +\
-                [self.weather_type[forecast['idWeatherType']]]
+            _description =  self.weather_type[forecast['idWeatherType']]
+            if forecast['classWindSpeed'] != -99: 
+                _description += ", com vento "+ self.wind_type[forecast['classWindSpeed']] +\
+                                " de " + forecast['predWindDir']
+            vals = [self._to_number(v) for v in forecast.values()] + [_description]
             _forecasts.append(Forecast(*vals))
         return _forecasts
 
@@ -99,6 +106,18 @@ class IPMA_API:
             self.weather_type[_type['idWeatherType']] = _type['descIdWeatherTypePT']
 
         return self.weather_type
+
+    async def wind_type_classe(self):
+        """Retrieve translation for wind type."""
+
+        data = await self.retrieve(url=API_WIND_TYPE)
+
+        self.wind_type = dict()
+
+        for _type in data['data']:
+            self.wind_type[int(_type['classWindSpeed'])] = _type['descClassWindSpeedDailyPT']
+
+        return self.wind_type
 
     async def observations(self):
         """Retrieve current weather observation."""
