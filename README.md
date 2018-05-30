@@ -20,12 +20,13 @@ async def main():
     async with aiohttp.ClientSession() as session:
         station = await Station.get(session, 40.61,-8.64)
         print("Nearest station if {}".format(station.local))
-        print(await station.forecast())
+        print("Current Weather:")
         print(await station.observation())
+        print("Next days:")
+        for forecast in await station.forecast():
+            print(forecast)
 
-if __name__ == "__main__":
-    asyncio.get_event_loop().run_until_complete(main())
-
+asyncio.get_event_loop().run_until_complete(main())
 ```
 
 ## Credits
