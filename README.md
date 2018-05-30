@@ -1,7 +1,7 @@
 [![PyPI version](https://badge.fury.io/py/pyipma.svg)](https://badge.fury.io/py/pyipma)
 
 # pyipma
-Python library to retrieve information from Instituto Português do Mar e Atmosfera
+Python library to retrieve information from [Instituto Português do Mar e Atmosfera](http://www.ipma.pt)
 
 ## Requirements
 - aiohttp
