@@ -21,7 +21,7 @@ class Station:
     async def retrieve(self, url, **kwargs):
         """Issue API requests."""
         try:
-            async with self.websession.request('GET', url) as res:
+            async with self.websession.request('GET', url, **kwargs) as res:
                 if res.status != 200:
                     raise Exception("Could not retrieve information from API")
                 if res.content_type == 'application/json':
