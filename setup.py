@@ -5,7 +5,7 @@ long_description = open('README.md').read()
 
 setup(
     name='pyipma',
-    version='1.0.4',
+    version='1.1.0',
     license='MIT License',
     url='https://github.com/dgomes/pyipma',
     author='Diogo Gomes',
@@ -19,7 +19,6 @@ setup(
     install_requires=[
         'aiohttp',
         'geopy',
-        'bs4'
       ],
     classifiers=[
         'License :: OSI Approved :: MIT License',
