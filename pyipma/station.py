@@ -3,10 +3,9 @@ import logging
 from collections import namedtuple
 import aiohttp
 
-from bs4 import BeautifulSoup
 from geopy import distance
 
-from .consts import STATIONS, API_DISTRITS, API_FORECAST, API_OBSERVATION
+from .consts import API_DISTRITS, API_FORECAST, API_XML_OBSERVATION
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
@@ -62,11 +61,11 @@ class Station:
                 closest = station
                 closest_distance = station_distance
 
-        #self.idRegiao = closest['idRegiao']
-        #self.idAreaAviso = closest['idAreaAviso']
-        #self.idConselho = closest['idConcelho']
+        self.idAreaAviso = closest['idAreaAviso']
+        self.idConselho = closest['idConcelho']
+        self.idDistrito = closest['idDistrito']
+        self.idRegiao = closest['idRegiao']
         self.globalIdLocal = closest['globalIdLocal']//100 * 100
-        #self.idDistrito = closest['idDistrito']
         self.local = closest['local']
         logger.info("Using %s as weather station", self.local)
         self.latitude = closest['latitude']
@@ -89,27 +88,36 @@ class Station:
 
     async def observation(self):
         """Retrieve current weather observation."""
-        from difflib import SequenceMatcher
 
-        prev = 0
-        for station in STATIONS:
-            similar = SequenceMatcher(None, self.local, station['name']).ratio()
-            if similar > prev:
-                localID = station['localID']
-                prev = similar
+        data = await self.retrieve(url=API_XML_OBSERVATION,
+                                   headers={'Referer': 'http://www.ipma.pt'})
 
-        data = await self.retrieve(url=API_OBSERVATION,
-                                   params={"selLocal": localID})
+        import xml.etree.ElementTree as ET
+        tree = ET.fromstring(data)
+        current_location = (self.latitude, self.longitude)
+        closest = None
+        closest_distance = None
 
-        html = BeautifulSoup(data, 'html.parser')
-        row = html.find_all('tr')
+        for station in tree.iter('station'):
+            station_loc = (float(station.get('lat')),
+                           float(station.get('lon')))
+            station_distance = distance.distance(current_location,
+                                                 station_loc).km
+            if not closest or station_distance < closest_distance:
+                closest = station
+                closest_distance = station_distance
 
         Observation = namedtuple('Observation', ['temperature', 'humidity',
                                                  'windspeed', 'winddirection',
                                                  'precipitation', 'pressure'])
-        units = [td.get_text() for td in row[1].find_all('td')]
-        values = [self._to_number(td.get_text())
-                  for td in row[3].find_all('td')][1:]
-        _observation = Observation(*zip(values, units))
 
+        obs = closest.find('currentObs')
+        _observation = Observation(
+            self._to_number(obs.find('temp').text),
+            self._to_number(obs.find('humidity').text),
+            obs.find('wind').find('windDirectionResume').text,
+            self._to_number(obs.find('wind').find('windSpeed').text),
+            self._to_number(obs.find('prec').text),
+            self._to_number(obs.find('pres').text),
+            )
         return _observation
