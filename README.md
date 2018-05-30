@@ -5,7 +5,6 @@ Python library to retrieve information from Instituto Português do Mar e Atmosf
 
 ## Requirements
 - aiohttp
-- BeautifulSoup4
 - geopy
 
 ## Example
