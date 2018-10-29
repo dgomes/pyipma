@@ -4,10 +4,11 @@ from collections import namedtuple
 import aiohttp
 
 from .consts import API_DISTRITS, API_FORECAST, API_WEATHER_TYPE,\
-    API_WIND_TYPE, API_XML_OBSERVATION, WIND_DIRECTION
+    API_WIND_TYPE, WIND_DIRECTION_ID, WIND_DIRECTION,\
+    API_OBSERVATION_STATIONS, API_OBSERVATION_OBSERVATIONS
 
-logger = logging.getLogger(__name__)
-logger.setLevel(logging.DEBUG)
+_LOGGER = logging.getLogger(__name__)
+_LOGGER.setLevel(logging.DEBUG)
 
 
 class IPMA_API:
@@ -56,7 +57,7 @@ class IPMA_API:
         _stations = []
 
         for station in data['data']:
-        
+
             _station = Station(
                 self._to_number(station['latitude']),
                 self._to_number(station['longitude']),
@@ -70,7 +71,7 @@ class IPMA_API:
 
             _stations.append(_station)
 
-        return _stations 
+        return _stations
 
     async def forecast(self, globalIdLocal):
         """Retrieve next 5 days forecast."""
@@ -80,15 +81,15 @@ class IPMA_API:
 
         if not self.weather_type:
             await self.weather_type_classe()
-       
+
         if not self.wind_type:
             await self.wind_type_classe()
 
         _forecasts = []
         for forecast in data['data']:
             Forecast = namedtuple('Forecast', list(forecast.keys())+['description'])
-            _description =  self.weather_type[forecast['idWeatherType']]
-            if forecast['classWindSpeed'] != -99: 
+            _description = self.weather_type[forecast['idWeatherType']]
+            if forecast['classWindSpeed'] != -99:
                 _description += ", com vento "+ self.wind_type[forecast['classWindSpeed']] +\
                                 " de " + WIND_DIRECTION[forecast['predWindDir']]
             vals = [self._to_number(v) for v in forecast.values()] + [_description]
@@ -101,7 +102,7 @@ class IPMA_API:
         data = await self.retrieve(url=API_WEATHER_TYPE)
 
         self.weather_type = dict()
-    
+
         for _type in data['data']:
             self.weather_type[_type['idWeatherType']] = _type['descIdWeatherTypePT']
 
@@ -122,40 +123,44 @@ class IPMA_API:
     async def observations(self):
         """Retrieve current weather observation."""
 
-        data = await self.retrieve(url=API_XML_OBSERVATION,
-                                   headers={'Referer': 'http://www.ipma.pt'})
+        raw_stations = await self.retrieve(url=API_OBSERVATION_STATIONS,
+                                           headers={'Referer': 'http://www.ipma.pt'})
 
-        import xml.etree.ElementTree as ET
-        tree = ET.fromstring(data)
+        raw_observations = await self.retrieve(url=API_OBSERVATION_OBSERVATIONS,
+                                               headers={'Referer': 'http://www.ipma.pt'})
 
         Station = namedtuple('ObservationStation', ['latitude', 'longitude', 'stationID',
-                                         'stationName', 'currentObs'])
+                                                    'stationName', 'currentObs'])
 
         Observation = namedtuple('Observation', ['temperature', 'humidity',
                                                  'windspeed', 'winddirection',
                                                  'precipitation', 'pressure',
                                                  'description'])
-        _observations = [] 
+        observations = []
+        last_observation = sorted(raw_observations.keys())[-1]
 
-        for station in tree.iter('station'):
-            obs = station.find('currentObs')
+        for station in raw_stations:
+            _station = raw_observations[last_observation][str(station.get('properties').get('idEstacao'))]
+
+            if _station is None:
+                continue
+
             _observation = Observation(
-                self._to_number(obs.find('temp').text),
-                self._to_number(obs.find('humidity').text),
-                self._to_number(obs.find('wind').find('windSpeed').text),
-                obs.find('wind').find('windDirectionResume').text,
-                self._to_number(obs.find('prec').text),
-                self._to_number(obs.find('pres').text),
-                obs.find('currentWeather').find('symbolDesc').text,
+                _station['temperatura'],
+                _station['humidade'],
+                _station['intensidadeVentoKM'],
+                WIND_DIRECTION[WIND_DIRECTION_ID[_station['idDireccVento']]],
+                _station['precAcumulada'],
+                _station['pressao'],
+                "{} @ {}".format(station.get('properties').get('localEstacao'), last_observation),
                 )
-            
+
             _station = Station(
-                station.get('lat'),
-                station.get('lon'),
-                station.get('stationID'),
-                station.get('stationName'),
+                station.get('geometry').get('coordinates')[1],
+                station.get('geometry').get('coordinates')[0],
+                station.get('properties').get('idEstacao'),
+                station.get('properties').get('localEstacao'),
                 _observation)
 
-            _observations.append(_station)
-
-        return _observations
+            observations.append(_station)
+        return observations
