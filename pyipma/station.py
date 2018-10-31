@@ -15,6 +15,7 @@ class Station:
 
     def __init__(self, websession):
         self.api = IPMA_API(websession)
+        self._last_observation = None
 
     def _filter_closest(self, lat, lon, stations):
         """Helper to filter the closest station to a given location."""
@@ -67,4 +68,7 @@ class Station:
                                        self.station.longitude,
                                        observations)
 
-        return closest.currentObs 
+        if closest is not None:
+            self._last_observation = closest.currentObs
+             
+        return self._last_observation
