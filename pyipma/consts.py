@@ -1,5 +1,6 @@
 API_DISTRITS = "http://api.ipma.pt/open-data/distrits-islands.json"
 API_FORECAST = "http://api.ipma.pt/open-data/forecast/meteorology/cities/daily/"
+NEW_API_FORECAST = "http://api.ipma.pt/public-data/forecast/aggregate/"
 API_OBSERVATION_STATIONS = "http://api.ipma.pt/public-data/observation/surface-stations/stations.json"
 API_OBSERVATION_OBSERVATIONS = "http://api.ipma.pt/public-data/observation/surface-stations/observations.json"
 API_WEATHER_TYPE = "http://api.ipma.pt/open-data/weather-type-classe.json"

@@ -28,6 +28,13 @@ async def main():
 asyncio.get_event_loop().run_until_complete(main())
 ```
 
+## Changelog
+
+1.1.6 - Interpret -99 and unavailable
+1.1.5 - Cache values
+1.1.4 - New API
+...
+
 ## Credits
 Values are obtained from [IPMA](http://api.ipma.pt)
 

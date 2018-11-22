@@ -89,7 +89,7 @@ class IPMA_API:
         for forecast in data['data']:
             Forecast = namedtuple('Forecast', list(forecast.keys())+['description'])
             _description = self.weather_type[forecast['idWeatherType']]
-            if forecast['classWindSpeed'] != -99:
+            if forecast['classWindSpeed'] != -99.0:
                 _description += ", com vento "+ self.wind_type[forecast['classWindSpeed']] +\
                                 " de " + WIND_DIRECTION[forecast['predWindDir']]
             vals = [self._to_number(v) for v in forecast.values()] + [_description]
@@ -148,10 +148,10 @@ class IPMA_API:
             _observation = Observation(
                 _station['temperatura'],
                 _station['humidade'],
-                _station['intensidadeVentoKM'],
+                _station['intensidadeVentoKM'] if _station['intensidadeVentoKM'] != -99.0 else None,
                 WIND_DIRECTION[WIND_DIRECTION_ID[_station['idDireccVento']]],
-                _station['precAcumulada'],
-                _station['pressao'],
+                _station['precAcumulada'] if _station['precAcumulada'] != -99.0 else None,
+                _station['pressao'] if _station['pressao'] != -99.0 else None,
                 "{} @ {}".format(station.get('properties').get('localEstacao'), last_observation),
                 )
 
