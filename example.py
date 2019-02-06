@@ -26,7 +26,9 @@ async def main():
         print("Nearest station is {}".format(station.local))
         print("Current Weather:")
         print(await station.observation())
-        
+        import pprint
+        pprint.pprint(station.__dict__)
+
         station = await Station.get(session,  38.0153, -7.8627)
         print("Nearest station is {}".format(station.local))
         print("Current Weather:")
