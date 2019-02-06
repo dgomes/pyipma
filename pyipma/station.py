@@ -52,6 +52,21 @@ class Station:
         """Location of the weather station."""
         return self.station.local
 
+    @property
+    def latitude(self):
+        """Latitude of the weather station."""
+        return self.station.latitude
+
+    @property
+    def longitude(self):
+        """Longitude of the weather station."""
+        return self.station.longitude
+
+    @property
+    def global_station_id(self):
+        """Global identifier of the station as defined by IPMA."""
+        return self.station.globalIdLocal
+
     async def forecast(self):
         """Retrieve next 5 days forecast."""
 
