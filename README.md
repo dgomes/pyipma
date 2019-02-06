@@ -30,6 +30,8 @@ asyncio.get_event_loop().run_until_complete(main())
 
 ## Changelog
 
+1.2.1 - Fix pip 
+1.2.0 - Wind direction corrected 
 1.1.6 - Interpret -99 and unavailable
 1.1.5 - Cache values
 1.1.4 - New API
