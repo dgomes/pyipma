@@ -122,12 +122,17 @@ class IPMA_API:
 
     async def observations(self):
         """Retrieve current weather observation."""
+        observations = []
 
         raw_stations = await self.retrieve(url=API_OBSERVATION_STATIONS,
                                            headers={'Referer': 'http://www.ipma.pt'})
+        if not raw_stations:
+            return observations 
 
         raw_observations = await self.retrieve(url=API_OBSERVATION_OBSERVATIONS,
                                                headers={'Referer': 'http://www.ipma.pt'})
+        if not raw_observations:
+            return observations 
 
         Station = namedtuple('ObservationStation', ['latitude', 'longitude', 'stationID',
                                                     'stationName', 'currentObs'])
@@ -136,7 +141,7 @@ class IPMA_API:
                                                  'windspeed', 'winddirection',
                                                  'precipitation', 'pressure',
                                                  'description'])
-        observations = []
+
         last_observation = sorted(raw_observations.keys())[-1]
 
         for station in raw_stations:
