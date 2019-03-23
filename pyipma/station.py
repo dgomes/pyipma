@@ -77,7 +77,10 @@ class Station:
     async def observation(self):
         """Retrieve current weather observation."""
 
-        observations = await self.api.observations()
+        try:
+            observations = await self.api.observations()
+        except:
+            return self._last_observation
 
         closest = self._filter_closest(self.station.latitude,
                                        self.station.longitude,
