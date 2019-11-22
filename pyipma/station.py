@@ -79,7 +79,8 @@ class Station:
 
         try:
             observations = await self.api.observations()
-        except:
+        except Exception as err:
+            logger.warn(err)
             return self._last_observation
 
         closest = self._filter_closest(self.station.latitude,
