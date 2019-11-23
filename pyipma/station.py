@@ -5,24 +5,48 @@ import aiohttp
 
 from geopy import distance
 from .api import IPMA_API
+from .observation import Observation
+from .consts import API_DISTRITS, API_OBSERVATION_STATIONS
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
 
+class Observation_Station:
+    def __init__(self, data):
+        self._data = data
+    
+    @property
+    def latitude(self):
+        return self._data['geometry']['coordinates'][1]
+
+    @property
+    def longitude(self):
+        return self._data['geometry']['coordinates'][0]
+    
+    @property
+    def idEstacao(self):
+        return self._data['properties']['idEstacao']
+    
+    @property
+    def localEstacao(self):
+        return self._data['properties']['localEstacao']
 
 class Station:
     """Represents a Meteo Station (district)."""
 
-    def __init__(self, websession):
-        self.api = IPMA_API(websession)
+    def __init__(self, distrit, observation_station):
         self._last_observation = None
+        self.distrit = distrit
+        self.observation_station = observation_station
 
-    def _filter_closest(self, lat, lon, stations):
+    @classmethod
+    def _filter_closest(cls, lat, lon, stations):
         """Helper to filter the closest station to a given location."""
         current_location = (lat, lon)
         closest = None
         closest_distance = None
 
+        #TODO: list compreension of stations, distance sorted by distance
         for station in stations:
             station_loc = (station.latitude, station.longitude)
             station_distance = distance.distance(current_location,
@@ -34,60 +58,59 @@ class Station:
         return closest 
 
     @classmethod
-    async def get(cls, websession, lat, lon):
+    async def get(cls, api, lat, lon):
         """Retrieve the nearest station."""
-
-        self = Station(websession)
         
-        stations = await self.api.stations()
+        distrits = await api.make('Distrit_Island')
 
-        self.station = self._filter_closest(lat, lon, stations)
+        distrit = cls._filter_closest(lat, lon, distrits.values())
 
-        logger.info("Using %s as weather station", self.station.local)
+        raw_observation_stations = await api.retrieve(url=API_OBSERVATION_STATIONS)
 
-        return self
+        stations = [Observation_Station(s) for s in raw_observation_stations]
+
+        station = cls._filter_closest(lat, lon, stations)
+
+
+        logger.info("Using %s as weather station for %s", station.localEstacao, distrit.local)
+
+        return Station(distrit, station)
 
     @property
     def local(self):
         """Location of the weather station."""
-        return self.station.local
+        return self.distrit.local
+
+    @property
+    def localEstacao(self):
+        """Location of the weather station."""
+        return self.observation_station.localEstacao
 
     @property
     def latitude(self):
         """Latitude of the weather station."""
-        return self.station.latitude
+        return self.observation_station.latitude
 
     @property
     def longitude(self):
         """Longitude of the weather station."""
-        return self.station.longitude
+        return self.observation_station.longitude
 
     @property
     def global_station_id(self):
         """Global identifier of the station as defined by IPMA."""
-        return self.station.globalIdLocal
+        return self.distrit.globalIdLocal
 
     async def forecast(self):
         """Retrieve next 5 days forecast."""
 
-        _forecasts = await self.api.forecast(self.station.globalIdLocal)
+        _forecasts = await self.api.forecast(self.distrit.globalIdLocal)
 
         return _forecasts
 
-    async def observation(self):
+    async def observation(self, api):
         """Retrieve current weather observation."""
 
-        try:
-            observations = await self.api.observations()
-        except Exception as err:
-            logger.warn(err)
-            return self._last_observation
+        observation = await Observation.get(api, self.observation_station.idEstacao)
 
-        closest = self._filter_closest(self.station.latitude,
-                                       self.station.longitude,
-                                       observations)
-
-        if closest is not None:
-            self._last_observation = closest.currentObs
-             
-        return self._last_observation
+        return observation

@@ -2,10 +2,13 @@
 import logging
 from collections import namedtuple
 import aiohttp
+import json
+import ast
 
-from .consts import API_DISTRITS, API_FORECAST, API_WEATHER_TYPE,\
-    API_WIND_TYPE, WIND_DIRECTION_ID, WIND_DIRECTION,\
+from .consts import API_FORECAST, \
+    WIND_DIRECTION_ID, WIND_DIRECTION,\
     API_OBSERVATION_STATIONS, API_OBSERVATION_OBSERVATIONS
+from .entities import Entities, ENTITY2APIURL
 
 _LOGGER = logging.getLogger(__name__)
 _LOGGER.setLevel(logging.DEBUG)
@@ -22,7 +25,7 @@ class IPMA_API:
     async def retrieve(self, url, **kwargs):
         """Issue API requests."""
         try:
-            async with self.websession.request('GET', url, **kwargs) as res:
+            async with self.websession.request('GET', url, headers={'Referer': 'http://www.ipma.pt'}, **kwargs) as res:
                 if res.status != 200:
                     raise Exception("Could not retrieve information from API")
                 if res.content_type == 'application/json':
@@ -34,44 +37,15 @@ class IPMA_API:
     @classmethod
     def _to_number(cls, string):
         """Convert string to int or float."""
-        try:
-            if float(string) - int(string) == 0:
-                return int(string)
-            return float(string)
-        except ValueError:
-            try:
-                return float(string)
-            except ValueError:
-                return string
+        num = ast.literal_eval(string)
+        if isinstance(num, int) or isinstance(num, float):
+            return num
+        return string
+    
+    async def make(self, entity_name):
+        """Load entity from url."""
+        return Entities(entity_name, await self.retrieve(ENTITY2APIURL[entity_name]['url']), ENTITY2APIURL[entity_name]['key'])
 
-    async def stations(self):
-        """Retrieve stations."""
-
-        data = await self.retrieve(API_DISTRITS)
-
-        Station = namedtuple('Station', ['latitude', 'longitude',
-                                         'idAreaAviso', 'idConselho',
-                                         'idDistrito', 'idRegiao',
-                                         'globalIdLocal', 'local'])
-
-        _stations = []
-
-        for station in data['data']:
-
-            _station = Station(
-                self._to_number(station['latitude']),
-                self._to_number(station['longitude']),
-                station['idAreaAviso'],
-                station['idConcelho'],
-                station['idDistrito'],
-                station['idRegiao'],
-                station['globalIdLocal']//100 * 100,
-                station['local'],
-                )
-
-            _stations.append(_station)
-
-        return _stations
 
     async def forecast(self, globalIdLocal):
         """Retrieve next 5 days forecast."""
@@ -111,7 +85,7 @@ class IPMA_API:
     async def wind_type_classe(self):
         """Retrieve translation for wind type."""
 
-        data = await self.retrieve(url=API_WIND_TYPE)
+        data = await self.retrieve(url=API_WIND_SPEED_DAILY)
 
         self.wind_type = dict()
 
