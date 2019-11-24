@@ -11,18 +11,10 @@ logger.setLevel(logging.DEBUG)
 
 class Observation:
     """Represents a Meteo Station (district)."""
-    def __init__(self, data):
+    def __init__(self, estacao, last_observation, data):
         self._data = data
-
-    @classmethod
-    async def get(cls, api, idEstacao):
-        """Retrieve observation of Estacao."""
-        
-        raw_observations = await api.retrieve(API_OBSERVATION_OBSERVATIONS)
-        
-        last_observation = sorted(raw_observations.keys())[-1]
-
-        return Observation(raw_observations[last_observation][str(idEstacao)])
+        self._estacao = estacao
+        self._last_observation = last_observation
 
     @property
     def intensidade_vento_km(self):
@@ -55,3 +47,6 @@ class Observation:
     @property
     def pressao(self):
         return self._data['pressao']
+
+    def __repr__(self):
+        return f"Weather in {self._estacao} at {self._last_observation}: {self.temperatura}°C, {self.humidade}%"

@@ -3,6 +3,7 @@ import aiohttp
 
 from pyipma.api import IPMA_API
 
+
 @pytest.mark.asyncio
 async def test_districts_islands():
     async with aiohttp.ClientSession() as session:

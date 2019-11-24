@@ -1,4 +1,4 @@
-from .station import *
+from .location import *
 from .api import *
 from .consts import *
 

@@ -5,7 +5,7 @@ import aiohttp
 import json
 import ast
 
-from .consts import API_FORECAST, \
+from .consts import \
     WIND_DIRECTION_ID, WIND_DIRECTION,\
     API_OBSERVATION_STATIONS, API_OBSERVATION_OBSERVATIONS
 from .entities import Entities, ENTITY2APIURL
