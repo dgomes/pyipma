@@ -2,13 +2,15 @@ import pytest
 import aiohttp
 
 from pyipma.api import IPMA_API
-
+from pyipma.consts import API_DISTRITS
+from pyipma.entities import Distrit_Island, Weather_Type, Wind_Speed_Daily, Precipitation
 
 @pytest.mark.asyncio
 async def test_districts_islands():
     async with aiohttp.ClientSession() as session:
         api = IPMA_API(session)
-        districts = await api.make('Distrit_Island')
+        
+        districts = await Distrit_Island.get(api)
 
         assert len(districts) == 29
         assert len(districts[1010500]) == 8
@@ -19,7 +21,7 @@ async def test_districts_islands():
 async def test_weather_types():
     async with aiohttp.ClientSession() as session:
         api = IPMA_API(session)
-        weather_types = await api.make('Weather_Type')
+        weather_types = await Weather_Type.get(api)
 
         assert len(weather_types) == 29
         assert len(weather_types[0]) == 3
@@ -30,7 +32,7 @@ async def test_weather_types():
 async def test_wind_speed():
     async with aiohttp.ClientSession() as session:
         api = IPMA_API(session)
-        wind_speed = await api.make('Wind_Speed_Daily')
+        wind_speed = await Wind_Speed_Daily.get(api)
 
         assert len(wind_speed) == 5
         assert len(wind_speed["-99"]) == 3
@@ -40,7 +42,7 @@ async def test_wind_speed():
 async def test_wind_speed():
     async with aiohttp.ClientSession() as session:
         api = IPMA_API(session)
-        precipitation = await api.make('Precipitation')
+        precipitation = await Precipitation.get(api)
 
         assert len(precipitation) == 5
         assert len(precipitation["-99"]) == 3

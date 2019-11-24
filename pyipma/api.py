@@ -8,7 +8,6 @@ import ast
 from .consts import \
     WIND_DIRECTION_ID, WIND_DIRECTION,\
     API_OBSERVATION_STATIONS, API_OBSERVATION_OBSERVATIONS
-from .entities import Entities, ENTITY2APIURL
 
 _LOGGER = logging.getLogger(__name__)
 _LOGGER.setLevel(logging.DEBUG)
@@ -42,11 +41,6 @@ class IPMA_API:
             return num
         return string
     
-    async def make(self, entity_name):
-        """Load entity from url."""
-        return Entities(entity_name, await self.retrieve(ENTITY2APIURL[entity_name]['url']), ENTITY2APIURL[entity_name]['key'])
-
-
     async def forecast(self, globalIdLocal):
         """Retrieve next 5 days forecast."""
 
