@@ -55,9 +55,9 @@ class Forecast:
         return self._data['probabilidadePrecipita']
 
     @property
-    def wind_strenght(self):
+    def wind_strength(self):
         """Wind Strength."""
-        return self._data['ffVento']
+        return self._data.get('ffVento')
 
     @property
     def wind_direction(self):
