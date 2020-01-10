@@ -25,8 +25,8 @@ async def test_location():
             str(location.id_station): {"temperatura": 10, "humidade": 80}
             }})): 
             obs = await location.observation(api)
-            assert obs.temperatura == 10
-            assert obs.humidade == 80
+            assert obs.temperature == 10
+            assert obs.humidity == 80
         
         #1010500 is the globalIdLocal for Aveiro
         assert location.global_id_local == 1010500
