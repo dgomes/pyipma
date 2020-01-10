@@ -37,8 +37,9 @@ async def test_wind_speed():
         assert len(wind_speed["-99"]) == 3
         assert wind_speed["1"].descClassWindSpeedDailyEN == "Weak"
 
+
 @pytest.mark.asyncio
-async def test_wind_speed():
+async def test_percipitation():
     async with aiohttp.ClientSession() as session:
         api = IPMA_API(session)
         precipitation = await Precipitation.get(api)
