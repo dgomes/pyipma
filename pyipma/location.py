@@ -134,8 +134,13 @@ class Location:
         observation_dates = iter(sorted(raw_observations.keys(), reverse=True))
         _last_observation = next(observation_dates)
 
-        while not raw_observations[_last_observation][str(self.observation_station.idEstacao)]:
-            _last_observation = next(observation_dates)
+        while not raw_observations[_last_observation][str(self.id_station)]:
+            try:
+                _last_observation = next(observation_dates)
+
+            except StopIteration:
+                LOGGER.error("Station has no observations!")
+                return None
 
         return Observation(self.station,
                            _last_observation,

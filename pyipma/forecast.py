@@ -21,13 +21,28 @@ class Forecast:
     def _temperature(self, tipo=TipoTemperatura.MED):
         """Temperature in Celcius."""
         try:
-            return self._data[tipo.value]
+            return float(self._data[tipo.value])
         except KeyError:
             # Create an average with MIN and MAX
             return round((
                 float(self._data[TipoTemperatura.MAX.value])
                 - float(self._data[TipoTemperatura.MIN.value])
                 )/2 + float(self._data[TipoTemperatura.MIN.value]), 1)
+
+    @property
+    def update_date(self):
+        """Date when the forecast data was updated."""
+        return self._data['dataUpdate']
+
+    @property
+    def forecast_date(self):
+        """Date for when this forecast is."""
+        return self._data['dataPrev']
+
+    @property
+    def forecasted_hours(self):
+        """Number of hours for the forecast."""
+        return self._data['idPeriodo']
 
     @property
     def temperature(self):
@@ -45,12 +60,17 @@ class Forecast:
         return self._temperature(TipoTemperatura.MIN)
 
     @property
+    def feels_like_temperature(self):
+        """'Feels Like' Temperature."""
+        return self._data["utci"]
+
+    @property
     def humidity(self):
         """Relative Humidity in %."""
         return self._data.get('hR')
 
     @property
-    def rain_probability(self):
+    def precipitation_probability(self):
         """Probability of raining more then 0.3mm."""
         return self._data['probabilidadePrecipita']
 
@@ -63,6 +83,11 @@ class Forecast:
     def wind_direction(self):
         """Wind direction."""
         return self._data['ddVento']
+
+    @property
+    def weather_type(self):
+        """Weather type."""
+        return self._data['idTipoTempo']
 
     def __repr__(self):
         return f"Forecast for {self._global_id_local} at {self._time}: \
