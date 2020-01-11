@@ -51,12 +51,12 @@ class Forecast:
 
     @property
     def max_temperature(self):
-        """Average Temperature."""
+        """Maximum Temperature."""
         return self._temperature(TipoTemperatura.MAX)
 
     @property
     def min_temperature(self):
-        """Average Temperature."""
+        """Minimum Temperature."""
         return self._temperature(TipoTemperatura.MIN)
 
     @property
