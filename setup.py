@@ -1,10 +1,11 @@
 from setuptools import setup, find_packages
+import pyipma
 
 long_description = open('README.md').read()
 
 setup(
     name='pyipma',
-    version='1.2.1',
+    version=pyipma.__version__,
     license='MIT License',
     url='https://github.com/dgomes/pyipma',
     author='Diogo Gomes',
