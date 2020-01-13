@@ -16,20 +16,25 @@ import aiohttp
 from pyipma import Station 
 
 async def main():
-    async with aiohttp.ClientSession() as session:
-        station = await Station.get(session, 40.61,-8.64)
-        print("Nearest station is {}".format(station.local))
-        print("Current Weather:")
-        print(await station.observation())
-        print("Next days:")
-        for forecast in await station.forecast():
-            print(forecast)
+	async with aiohttp.ClientSession() as session:
+        api = IPMA_API(session)
+
+        location = await Location.get(api,  40.6517, -8.6573)
+        print("Forecast for {}".format(location.name))
+        print("Nearest station is {}".format(location.station))
+
+        obs = await location.observation(api)
+		print("Current weather is {}".format(obs))
+
+        forecasts = await location.forecast(api)
+		print("Forecast for tomorrow {}".format(forecasts[0]))
 
 asyncio.get_event_loop().run_until_complete(main())
 ```
 
 ## Changelog
 
+* 2.0.0 - Major refactor
 * 1.2.1 - Fix pip
 * 1.2.0 - Wind direction corrected 
 * 1.1.6 - Interpret -99 and unavailable
@@ -39,6 +44,10 @@ asyncio.get_event_loop().run_until_complete(main())
 
 ## Credits
 Values are obtained from [IPMA](http://api.ipma.pt)
+
+
+## Contributors
+@abmantis
 
 ## Copyright
 
