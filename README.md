@@ -16,7 +16,7 @@ import aiohttp
 from pyipma import Station 
 
 async def main():
-	async with aiohttp.ClientSession() as session:
+    async with aiohttp.ClientSession() as session:
         api = IPMA_API(session)
 
         location = await Location.get(api,  40.6517, -8.6573)
@@ -24,10 +24,10 @@ async def main():
         print("Nearest station is {}".format(location.station))
 
         obs = await location.observation(api)
-		print("Current weather is {}".format(obs))
+        print("Current weather is {}".format(obs))
 
         forecasts = await location.forecast(api)
-		print("Forecast for tomorrow {}".format(forecasts[0]))
+        print("Forecast for tomorrow {}".format(forecasts[0]))
 
 asyncio.get_event_loop().run_until_complete(main())
 ```
