@@ -117,6 +117,16 @@ class Location:
         """Global identifier of the location as defined by IPMA."""
         return self.observation_station.idEstacao
 
+    @property
+    def station_latitude(self):
+        """Weather station latitude."""
+        return self.observation_station.latitude
+
+    @property
+    def station_longitude(self):
+        """Weather station longitude."""
+        return self.observation_station.longitude
+
     async def forecast(self, api):
         """Retrieve forecasts of location."""
 
