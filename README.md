@@ -35,6 +35,7 @@ asyncio.get_event_loop().run_until_complete(main())
 
 ## Changelog
 
+* 2.0.3 - Searches next closest station when offline
 * 2.0.2 - Adds Station Lat/Lon
 * 2.0.1 - fixes
 * 2.0.0 - Major refactor
