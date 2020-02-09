@@ -5,7 +5,7 @@ from mock import patch
 from pyipma.api import IPMA_API
 from pyipma.location import Location
 
-async def dump_json(data):
+def dump_json(data):
     return data
 
 @pytest.mark.asyncio
