@@ -72,30 +72,42 @@ class Location:
         self.observation_station = observation_station
 
     @classmethod
-    def _filter_closest(cls, lat, lon, locations):
+    def _filter_closest(cls, lat, lon, locations, order=0):
         """Helper to filter the closest station to a given location."""
 
         station_distance = [(s, distance.distance((lat, lon), (s.latitude, s.longitude)).km)
                             for s in locations]
-        closest = min(station_distance, key=lambda x: x[1])[0] #first element of tuple
+        closest = sorted(station_distance, key=lambda x: x[1])[order][0] #first element of tuple
 
         return closest
 
     @classmethod
-    async def get(cls, api, lat, lon):
+    async def get(cls, api, lat, lon, l_order=0, s_order=0):
         """Retrieve the nearest location and associated station."""
 
         raw_locations = await api.retrieve(url=API_FORECAST_LOCATIONS)
         locations = [ForecastLocation(r) for r in raw_locations]
-        location = cls._filter_closest(lat, lon, locations)
+        location = cls._filter_closest(lat, lon, locations, l_order)
 
         raw_observations_stations = await api.retrieve(url=API_OBSERVATION_STATIONS)
         stations = [ObservationStation(s) for s in raw_observations_stations]
-        station = cls._filter_closest(lat, lon, stations)
+        station = cls._filter_closest(lat, lon, stations, s_order)
+
+        t_loc = Location(location, station)
+
+        frcst = await t_loc.forecast(api)
+        if not frcst:
+            LOGGER.error("Can't get forecast for %s", location.local)
+            return await cls.get( api, lat, lon, l_order+1, s_order)
+
+        obs = await t_loc.observation(api)
+        if not obs:
+            LOGGER.error("At %s but closest station %s seams offline", location.local, station.localEstacao)
+            return await cls.get( api, lat, lon, l_order, s_order+1)
 
         LOGGER.info("Using %s as weather station for %s", station.localEstacao, location.local)
 
-        return Location(location, station)
+        return t_loc
 
     @property
     def name(self):
@@ -140,7 +152,7 @@ class Location:
         """Retrieve observation of Estacao."""
 
         raw_observations = await api.retrieve(API_OBSERVATION_OBSERVATIONS)
-
+        
         observation_dates = iter(sorted(raw_observations.keys(), reverse=True))
         _last_observation = next(observation_dates)
 
