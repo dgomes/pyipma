@@ -101,7 +101,7 @@ class Location:
             return await cls.get( api, lat, lon, l_order+1, s_order)
 
         obs = await t_loc.observation(api)
-        if not obs:
+        if not obs or obs.temperature == -99 or obs.humidity == -99:
             LOGGER.error("At %s but closest station %s seams offline", location.local, station.localEstacao)
             return await cls.get( api, lat, lon, l_order, s_order+1)
 
