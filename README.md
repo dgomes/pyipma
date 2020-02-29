@@ -35,6 +35,7 @@ asyncio.get_event_loop().run_until_complete(main())
 
 ## Changelog
 
+* 2.0.5 - Look for previous observations when no temperature/humidity available
 * 2.0.4 - Ignore Observation stations with temperature/humidity -99
 * 2.0.3 - Searches next closest station when offline
 * 2.0.2 - Adds Station Lat/Lon

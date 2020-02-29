@@ -11,6 +11,7 @@ logger.setLevel(logging.DEBUG)
 
 class Observation:
     """Represents a Meteo Station (district)."""
+
     def __init__(self, station, last_observation, data):
         self._data = data
         self._station = station
@@ -18,35 +19,45 @@ class Observation:
 
     @property
     def temperature(self):
-        return self._data['temperatura']
+        if self._data["temperatura"] == -99:
+            return None
+        return self._data["temperatura"]
 
     @property
     def radiation(self):
-        return self._data['radiacao']
+        return self._data["radiacao"]
 
     @property
     def wind_intensity_km(self):
-        return self._data['intensidadeVentoKM']
+        if self._data["intensidadeVentoKM"] == -99:
+            return None
+        return self._data["intensidadeVentoKM"]
 
     @property
     def wind_intensity(self):
-        return self._data['intensidadeVento']
+        return self._data["intensidadeVento"]
 
     @property
     def wind_direction(self):
-        return WIND_DIRECTION_ID[self._data['idDireccVento']]
-    
+        return WIND_DIRECTION_ID[self._data["idDireccVento"]]
+
     @property
     def accumulated_precipitation(self):
-        return self._data['precAcumulada']
+        if self._data["precAcumulada"] == -99:
+            return None
+        return self._data["precAcumulada"]
 
     @property
     def humidity(self):
-        return self._data['humidade']
+        if self._data["humidade"] == -99:
+            return None
+        return self._data["humidade"]
 
     @property
     def pressure(self):
-        return self._data['pressao']
+        if self._data["pressao"] == -99:
+            return None
+        return self._data["pressao"]
 
     def __repr__(self):
         return f"Weather in {self._station} at {self._last_observation}: {self.temperature}°C, {self.humidity}%"
