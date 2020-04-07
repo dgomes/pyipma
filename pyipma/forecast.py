@@ -1,6 +1,7 @@
 """Representation of a Weather Forecast from IPMA."""
 import logging
 from enum import Enum
+from .consts import WEATHER_TYPE_ID
 
 LOGGER = logging.getLogger(__name__)
 LOGGER.setLevel(logging.DEBUG)
@@ -87,8 +88,8 @@ class Forecast:
     @property
     def weather_type(self):
         """Weather type."""
-        return self._data['idTipoTempo']
+        return WEATHER_TYPE_ID[self._data['idTipoTempo']]
 
     def __repr__(self):
         return f"Forecast for {self._global_id_local} at {self._time}: \
-            {self.temperature}°C, {self.humidity}%"
+            {self.temperature}°C, {self.humidity}%, {self.weather_type}"
