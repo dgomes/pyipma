@@ -88,8 +88,13 @@ class Forecast:
     @property
     def weather_type(self):
         """Weather type."""
+        return self._data['idTipoTempo']
+
+    @property
+    def weather_type_description(self):
+        """Weather type description"""
         return WEATHER_TYPE_ID[self._data['idTipoTempo']]
 
     def __repr__(self):
         return f"Forecast for {self._global_id_local} at {self._time}: \
-            {self.temperature}°C, {self.humidity}%, {self.weather_type}"
+            {self.temperature}°C, {self.humidity}%, {self.weather_type_description}"
