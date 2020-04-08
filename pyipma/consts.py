@@ -32,35 +32,3 @@ WIND_DIRECTION_ID = {
     8: 'NW',
     9: 'N'
 }
-
-WEATHER_TYPE_ID = {
-    0: "No Information",
-    1: "Clear sky",
-    2: "Partly cloudy",
-    3: "Sunny intervals",
-    4: "Very cloudy",
-    5: "Cloudy (High cloud)",
-    6: "Showers",
-    7: "Light showers",
-    8: "Heavy showers",
-    9: "Rain",
-    10: "Light rain",
-    11: "Heavy rain",
-    12: "Intermittent rain",
-    13: "Intermittent ligth rain",
-    14: "Intermittent heavy rain",
-    15: "Drizzle",
-    16: "Mist",
-    17: "Fog or low clouds",
-    18: "Snow",
-    19: "Thunderstorms",
-    20: "Showers and thunderstorm.",
-    21: "Hail",
-    22: "Frost",
-    23: "Rain and thunderstorms",
-    24: "Convective clouds",
-    25: "Partly cloudy",
-    26: "Fog",
-    27: "Cloudy"
-
-}

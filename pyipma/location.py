@@ -4,6 +4,7 @@ import logging
 from geopy import distance
 from .observation import Observation
 from .forecast import Forecast
+from .entities import WeatherType
 from .consts import (
     API_FORECAST_LOCATIONS,
     API_OBSERVATION_STATIONS,
@@ -164,6 +165,10 @@ class Location:
         raw_forecasts = await api.retrieve(
             API_FORECAST_TEMPLATE.format(self.global_id_local)
         )
+
+        type_description = await WeatherType.get(api)
+        for forcst in raw_forecasts:
+            forcst["tipoTempo"] = type_description[forcst.get('idTipoTempo')].descIdWeatherTypeEN
 
         forecasts = [
             Forecast(f["globalIdLocal"], f["dataPrev"], f) for f in raw_forecasts
