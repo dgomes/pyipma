@@ -76,10 +76,11 @@ class ForecastLocation:
 class Location:
     """Represents a Location (district)."""
 
-    def __init__(self, distrit, observation_station):
+    def __init__(self, distrit, observation_station, weather_types):
         self._last_observation = None
         self.distrit = distrit
         self.observation_station = observation_station
+        self.weather_types = weather_types
 
     @classmethod
     def _filter_closest(cls, lat, lon, locations, order=0):
@@ -107,7 +108,9 @@ class Location:
         stations = [ObservationStation(s) for s in raw_observations_stations]
         station = cls._filter_closest(lat, lon, stations, s_order)
 
-        t_loc = Location(location, station)
+        weather_type = await WeatherType.get(api)
+
+        t_loc = Location(location, station, weather_type)
 
         frcst = await t_loc.forecast(api)
         if not frcst:
@@ -166,12 +169,8 @@ class Location:
             API_FORECAST_TEMPLATE.format(self.global_id_local)
         )
 
-        type_description = await WeatherType.get(api)
-        for forcst in raw_forecasts:
-            forcst["tipoTempo"] = type_description[forcst.get('idTipoTempo')].descIdWeatherTypeEN
-
         forecasts = [
-            Forecast(f["globalIdLocal"], f["dataPrev"], f) for f in raw_forecasts
+            Forecast(f["globalIdLocal"], f["dataPrev"], f, self.weather_types) for f in raw_forecasts
         ]
 
         return forecasts

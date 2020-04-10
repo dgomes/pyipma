@@ -13,10 +13,11 @@ class TipoTemperatura(Enum):
 
 class Forecast:
     """Represents a Meteo Forecast."""
-    def __init__(self, globalIdLocal, time, data):
+    def __init__(self, globalIdLocal, time, data, weatherTypeDescription):
         self._data = data
         self._time = time
         self._global_id_local = globalIdLocal
+        self._weather_type_description = weatherTypeDescription
 
     def _temperature(self, tipo=TipoTemperatura.MED):
         """Temperature in Celcius."""
@@ -92,7 +93,7 @@ class Forecast:
     @property
     def weather_type_description(self):
         """Weather type description"""
-        return self._data['tipoTempo']
+        return self._weather_type_description[self.weather_type].descIdWeatherTypeEN
 
     def __repr__(self):
         return f"Forecast for {self._global_id_local} at {self._time}: \
