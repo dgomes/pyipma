@@ -4,6 +4,7 @@ import logging
 from geopy import distance
 from .observation import Observation
 from .forecast import Forecast
+from .entities import WeatherType
 from .consts import (
     API_FORECAST_LOCATIONS,
     API_OBSERVATION_STATIONS,
@@ -75,10 +76,11 @@ class ForecastLocation:
 class Location:
     """Represents a Location (district)."""
 
-    def __init__(self, distrit, observation_station):
+    def __init__(self, distrit, observation_station, weather_types):
         self._last_observation = None
         self.distrit = distrit
         self.observation_station = observation_station
+        self.weather_types = weather_types
 
     @classmethod
     def _filter_closest(cls, lat, lon, locations, order=0):
@@ -106,7 +108,9 @@ class Location:
         stations = [ObservationStation(s) for s in raw_observations_stations]
         station = cls._filter_closest(lat, lon, stations, s_order)
 
-        t_loc = Location(location, station)
+        weather_type = await WeatherType.get(api)
+
+        t_loc = Location(location, station, weather_type)
 
         frcst = await t_loc.forecast(api)
         if not frcst:
@@ -166,7 +170,7 @@ class Location:
         )
 
         forecasts = [
-            Forecast(f["globalIdLocal"], f["dataPrev"], f) for f in raw_forecasts
+            Forecast(f["globalIdLocal"], f["dataPrev"], f, self.weather_types) for f in raw_forecasts
         ]
 
         return forecasts
