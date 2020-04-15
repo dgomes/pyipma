@@ -11,6 +11,7 @@ async def main():
         location = await Location.get(api,  40.6517, -8.6573)
         print("Forecast for {}".format(location.name))
         print("Nearest station is {}".format(location.station))
+        print("Nearest sea station is {}".format(location.sea_station_name))
 
         obs = await location.observation(api)
         print("Current weather is {}".format(obs))
