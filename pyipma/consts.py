@@ -6,7 +6,9 @@ API_OBSERVATION_STATIONS = "https://api.ipma.pt/open-data/observation/meteorolog
 
 API_OBSERVATION_OBSERVATIONS = "http://api.ipma.pt/public-data/observation/surface-stations/observations.json"
 API_FORECAST_LOCATIONS = "http://api.ipma.pt/public-data/forecast/locations.json"
+API_SEA_LOCATIONS = "http://api.ipma.pt/open-data/sea-locations.json"
 API_FORECAST_TEMPLATE = "http://api.ipma.pt/public-data/forecast/aggregate/{}.json"
+API_SEA_FORECAST = "http://api.ipma.pt/open-data/forecast/oceanography/daily/hp-daily-sea-forecast-day0.json"
 
 WIND_DIRECTION = {
     'N': "Norte",

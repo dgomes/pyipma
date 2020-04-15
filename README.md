@@ -29,6 +29,9 @@ async def main():
 
         forecasts = await location.forecast(api)
         print("Forecast for tomorrow {}".format(forecasts[0]))
+        
+        sea_forecast = await location.sea_forecast(api)
+        print("Sea forecast for today {}".format(sea_forecast))
 
 asyncio.get_event_loop().run_until_complete(main())
 ```
