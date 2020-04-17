@@ -58,6 +58,7 @@ Values are obtained from [IPMA](http://api.ipma.pt)
 
 ## Contributors
 @abmantis
+@joaocps
 
 ## Copyright
 
