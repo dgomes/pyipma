@@ -129,14 +129,14 @@ class Location:
                     location.local,
                     sea_station.local,
                 )
-                return await cls.get(api, lat, lon, l_order, s_order, t_order + 1)
+                return await cls.get(api, lat, lon, True, l_order, s_order, t_order + 1)
         else:
             t_loc = Location(location, station, None, weather_type)
 
         frcst = await t_loc.forecast(api)
         if not frcst:
             LOGGER.error("Can't get forecast for %s", location.local)
-            return await cls.get(api, lat, lon, l_order + 1, s_order, t_order)
+            return await cls.get(api, lat, lon, False, l_order + 1, s_order, t_order)
 
         obs = await t_loc.observation(api)
         if not obs:
@@ -145,7 +145,7 @@ class Location:
                 location.local,
                 station.localEstacao,
             )
-            return await cls.get(api, lat, lon, l_order, s_order + 1, t_order)
+            return await cls.get(api, lat, lon, False, l_order, s_order + 1, t_order)
 
         LOGGER.info(
             "Using %s as weather station for %s",
