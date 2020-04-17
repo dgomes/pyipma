@@ -95,6 +95,11 @@ class Forecast:
         """Weather type description"""
         return self._weather_type_description[self.weather_type].descIdWeatherTypeEN
 
+    @property
+    def weather_type_description_pt(self):
+        """Weather type description in portuguese"""
+        return self._weather_type_description[self.weather_type].descIdWeatherTypePT
+
     def __repr__(self):
         return f"Forecast for {self._global_id_local} at {self._time}: \
             {self.temperature}°C, {self.humidity}%, {self.weather_type_description}"
