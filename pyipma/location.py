@@ -101,7 +101,7 @@ class Location:
         return closest
 
     @classmethod
-    async def get(cls, api, lat, lon, allow_sea_stations=False, l_order=0, s_order=0, t_order=0):
+    async def get(cls, api, lat, lon, sea_stations=False, l_order=0, s_order=0, t_order=0):
         """Retrieve the nearest location and associated station."""
 
         raw_locations = await api.retrieve(url=API_FORECAST_LOCATIONS)
@@ -114,7 +114,7 @@ class Location:
 
         weather_type = await WeatherType.get(api)
 
-        if allow_sea_stations:
+        if sea_stations:
             raw_sea_stations = await api.retrieve(url=API_SEA_LOCATIONS)
             sea_stations = [ForecastLocation(t) for t in raw_sea_stations]
             sea_station = cls._filter_closest(lat, lon, sea_stations, t_order)
@@ -189,7 +189,7 @@ class Location:
     def sea_station_name(self):
         """Sea station name"""
         if self.sea_station is None:
-            return "Sea stations disabled"
+            return None
         else:
             return self.sea_station.local
 
@@ -197,7 +197,7 @@ class Location:
     def sea_station_global_id_local(self):
         """Global identifier of the location as defined by IPMA."""
         if self.sea_station is None:
-            return "Sea stations disabled"
+            return None
         else:
             return self.sea_station.globalIdLocal
 
