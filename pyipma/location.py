@@ -101,7 +101,7 @@ class Location:
         return closest
 
     @classmethod
-    async def get(cls, api, lat, lon, l_order=0, s_order=0, t_order=0):
+    async def get(cls, api, lat, lon, allow_sea_stations=False, l_order=0, s_order=0, t_order=0):
         """Retrieve the nearest location and associated station."""
 
         raw_locations = await api.retrieve(url=API_FORECAST_LOCATIONS)
@@ -112,13 +112,26 @@ class Location:
         stations = [ObservationStation(s) for s in raw_observations_stations]
         station = cls._filter_closest(lat, lon, stations, s_order)
 
-        raw_sea_stations = await api.retrieve(url=API_SEA_LOCATIONS)
-        sea_stations = [ForecastLocation(t) for t in raw_sea_stations]
-        sea_station = cls._filter_closest(lat, lon, sea_stations, t_order)
-
         weather_type = await WeatherType.get(api)
 
-        t_loc = Location(location, station, sea_station, weather_type)
+        if allow_sea_stations:
+            raw_sea_stations = await api.retrieve(url=API_SEA_LOCATIONS)
+            sea_stations = [ForecastLocation(t) for t in raw_sea_stations]
+            sea_station = cls._filter_closest(lat, lon, sea_stations, t_order)
+
+            t_loc = Location(location, station, sea_station, weather_type)
+
+            sea_frcst = await t_loc.sea_forecast(api)
+
+            if not sea_frcst:
+                LOGGER.error(
+                    "At %s but closest sea station %s seams offline",
+                    location.local,
+                    sea_station.local,
+                )
+                return await cls.get(api, lat, lon, l_order, s_order, t_order + 1)
+        else:
+            t_loc = Location(location, station, None, weather_type)
 
         frcst = await t_loc.forecast(api)
         if not frcst:
@@ -134,19 +147,9 @@ class Location:
             )
             return await cls.get(api, lat, lon, l_order, s_order + 1, t_order)
 
-        sea_frcst = await t_loc.sea_forecast(api)
-        if not sea_frcst:
-            LOGGER.error(
-                "At %s but closest sea station %s seams offline",
-                location.local,
-                sea_station.local,
-            )
-            return await cls.get(api, lat, lon, l_order, s_order, t_order + 1)
-
         LOGGER.info(
-            "Using %s as weather station and %s as sea station for %s",
+            "Using %s as weather station for %s",
             station.localEstacao,
-            sea_station.local,
             location.local
         )
 
@@ -185,12 +188,18 @@ class Location:
     @property
     def sea_station_name(self):
         """Sea station name"""
-        return self.sea_station.local
+        if self.sea_station is None:
+            return "Sea stations disabled"
+        else:
+            return self.sea_station.local
 
     @property
     def sea_station_global_id_local(self):
         """Global identifier of the location as defined by IPMA."""
-        return self.sea_station.globalIdLocal
+        if self.sea_station is None:
+            return "Sea stations disabled"
+        else:
+            return self.sea_station.globalIdLocal
 
     async def forecast(self, api):
         """Retrieve forecasts of location."""
@@ -236,6 +245,9 @@ class Location:
 
     async def sea_forecast(self, api):
         """Retrieve today's sea forecast for closest sea location"""
+
+        if self.sea_station is None:
+            return "Sea stations disabled"
 
         raw_sea_forecasts = await api.retrieve(API_SEA_FORECAST)
 
