@@ -27,6 +27,8 @@ class IPMA_API: # pylint: disable=invalid-name
                 return await res.text()
         except aiohttp.ClientError as err:
             logging.error(err)
+        except json.decoder.JSONDecodeError as err:
+            logging.error(err)
 
     @classmethod
     def _to_number(cls, string):
