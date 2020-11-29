@@ -39,6 +39,7 @@ asyncio.get_event_loop().run_until_complete(main())
 
 ## Changelog
 
+* 2.1.0 - Sea Forecast
 * 2.0.5 - Look for previous observations when no temperature/humidity available
 * 2.0.4 - Ignore Observation stations with temperature/humidity -99
 * 2.0.3 - Searches next closest station when offline
