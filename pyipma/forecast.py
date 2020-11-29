@@ -101,5 +101,8 @@ class Forecast:
         return self._weather_type_description[self.weather_type].descIdWeatherTypePT
 
     def __repr__(self):
+        if self.humidity is None:
+            return f"Forecast for {self._global_id_local} at {self._time}: \
+                {self.temperature}°C, {self.weather_type_description}"
         return f"Forecast for {self._global_id_local} at {self._time}: \
             {self.temperature}°C, {self.humidity}%, {self.weather_type_description}"
