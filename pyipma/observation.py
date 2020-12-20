@@ -5,8 +5,7 @@ from collections import namedtuple
 from .api import IPMA_API
 from .consts import API_OBSERVATION_OBSERVATIONS, WIND_DIRECTION_ID
 
-logger = logging.getLogger(__name__)
-logger.setLevel(logging.DEBUG)
+LOGGER = logging.getLogger(__name__)
 
 
 class Observation:
@@ -20,6 +19,7 @@ class Observation:
     @property
     def temperature(self):
         if self._data["temperatura"] == -99:
+            LOGGER.warning("No temperature available.")
             return None
         return self._data["temperatura"]
 
@@ -30,6 +30,7 @@ class Observation:
     @property
     def wind_intensity_km(self):
         if self._data["intensidadeVentoKM"] == -99:
+            LOGGER.warning("No wind intensity available.")
             return None
         return self._data["intensidadeVentoKM"]
 
@@ -44,18 +45,21 @@ class Observation:
     @property
     def accumulated_precipitation(self):
         if self._data["precAcumulada"] == -99:
+            LOGGER.warning("No Accumulated Precipitation available")
             return None
         return self._data["precAcumulada"]
 
     @property
     def humidity(self):
         if self._data["humidade"] == -99:
+            LOGGER.warning("No Humidity available")
             return None
         return self._data["humidade"]
 
     @property
     def pressure(self):
         if self._data["pressao"] == -99:
+            LOGGER.warning("No Pressure available")
             return None
         return self._data["pressao"]
 

@@ -12,11 +12,10 @@ from .consts import (
     API_OBSERVATION_OBSERVATIONS,
     API_FORECAST_TEMPLATE,
     API_SEA_FORECAST,
-    API_SEA_LOCATIONS
+    API_SEA_LOCATIONS,
 )
 
 LOGGER = logging.getLogger(__name__)  # pylint: disable=invalid-name
-LOGGER.setLevel(logging.DEBUG)
 
 
 class ObservationStation:
@@ -101,7 +100,9 @@ class Location:
         return closest
 
     @classmethod
-    async def get(cls, api, lat, lon, sea_stations=False, l_order=0, s_order=0, t_order=0):
+    async def get(
+        cls, api, lat, lon, sea_stations=False, l_order=0, s_order=0, t_order=0
+    ):
         """Retrieve the nearest location and associated station."""
 
         raw_locations = await api.retrieve(url=API_FORECAST_LOCATIONS)
@@ -129,14 +130,18 @@ class Location:
                     location.local,
                     sea_station.local,
                 )
-                return await cls.get(api, lat, lon, sea_station, l_order, s_order, t_order + 1)
+                return await cls.get(
+                    api, lat, lon, sea_station, l_order, s_order, t_order + 1
+                )
         else:
             t_loc = Location(location, station, None, weather_type)
 
         frcst = await t_loc.forecast(api)
         if not frcst:
             LOGGER.error("Can't get forecast for %s", location.local)
-            return await cls.get(api, lat, lon, sea_station, l_order + 1, s_order, t_order)
+            return await cls.get(
+                api, lat, lon, sea_station, l_order + 1, s_order, t_order
+            )
 
         obs = await t_loc.observation(api)
         if not obs:
@@ -145,12 +150,12 @@ class Location:
                 location.local,
                 station.localEstacao,
             )
-            return await cls.get(api, lat, lon, sea_station, l_order, s_order + 1, t_order)
+            return await cls.get(
+                api, lat, lon, sea_station, l_order, s_order + 1, t_order
+            )
 
         LOGGER.info(
-            "Using %s as weather station for %s",
-            station.localEstacao,
-            location.local
+            "Using %s as weather station for %s", station.localEstacao, location.local
         )
 
         return t_loc
@@ -209,7 +214,8 @@ class Location:
         )
 
         forecasts = [
-            Forecast(f["globalIdLocal"], f["dataPrev"], f, self.weather_types) for f in raw_forecasts
+            Forecast(f["globalIdLocal"], f["dataPrev"], f, self.weather_types)
+            for f in raw_forecasts
         ]
 
         return forecasts
@@ -223,11 +229,11 @@ class Location:
         _last_observation = next(observation_dates)
 
         while (
-                not raw_observations[_last_observation][str(self.id_station)]
-                or raw_observations[_last_observation][str(self.id_station)]["temperatura"]
-                == -99
-                or raw_observations[_last_observation][str(self.id_station)]["humidade"]
-                == -99
+            not raw_observations[_last_observation][str(self.id_station)]
+            or raw_observations[_last_observation][str(self.id_station)]["temperatura"]
+            == -99
+            or raw_observations[_last_observation][str(self.id_station)]["humidade"]
+            == -99
         ):
             try:
                 _last_observation = next(observation_dates)
@@ -252,8 +258,11 @@ class Location:
         raw_sea_forecasts = await api.retrieve(API_SEA_FORECAST)
 
         try:
-            _matched_sea_frcst = next(item for item in raw_sea_forecasts['data']
-                                      if item["globalIdLocal"] == self.sea_station_global_id_local)
+            _matched_sea_frcst = next(
+                item
+                for item in raw_sea_forecasts["data"]
+                if item["globalIdLocal"] == self.sea_station_global_id_local
+            )
         except StopIteration:
             LOGGER.error("Sea Station has no forecast for today!")
             return None
@@ -261,5 +270,5 @@ class Location:
         return SeaForecast(
             self.sea_station_global_id_local,
             raw_sea_forecasts["forecastDate"],
-            _matched_sea_frcst
+            _matched_sea_frcst,
         )

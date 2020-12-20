@@ -3,16 +3,19 @@ import logging
 from enum import Enum
 
 LOGGER = logging.getLogger(__name__)
-LOGGER.setLevel(logging.DEBUG)
+
 
 class TipoTemperatura(Enum):
     """Enumeration of types of Temperature."""
+
     MIN = "tMin"
     MED = "tMed"
     MAX = "tMax"
 
+
 class Forecast:
     """Represents a Meteo Forecast."""
+
     def __init__(self, globalIdLocal, time, data, weatherTypeDescription):
         self._data = data
         self._time = time
@@ -25,25 +28,31 @@ class Forecast:
             return float(self._data[tipo.value])
         except KeyError:
             # Create an average with MIN and MAX
-            return round((
-                float(self._data[TipoTemperatura.MAX.value])
-                - float(self._data[TipoTemperatura.MIN.value])
-                )/2 + float(self._data[TipoTemperatura.MIN.value]), 1)
+            LOGGER.debug("Temperature not available, averaging Max and Min")
+            return round(
+                (
+                    float(self._data[TipoTemperatura.MAX.value])
+                    - float(self._data[TipoTemperatura.MIN.value])
+                )
+                / 2
+                + float(self._data[TipoTemperatura.MIN.value]),
+                1,
+            )
 
     @property
     def update_date(self):
         """Date when the forecast data was updated."""
-        return self._data['dataUpdate']
+        return self._data["dataUpdate"]
 
     @property
     def forecast_date(self):
         """Date for when this forecast is."""
-        return self._data['dataPrev']
+        return self._data["dataPrev"]
 
     @property
     def forecasted_hours(self):
         """Number of hours for the forecast."""
-        return self._data['idPeriodo']
+        return self._data["idPeriodo"]
 
     @property
     def temperature(self):
@@ -68,27 +77,27 @@ class Forecast:
     @property
     def humidity(self):
         """Relative Humidity in %."""
-        return self._data.get('hR')
+        return self._data.get("hR")
 
     @property
     def precipitation_probability(self):
         """Probability of raining more then 0.3mm."""
-        return self._data['probabilidadePrecipita']
+        return self._data["probabilidadePrecipita"]
 
     @property
     def wind_strength(self):
         """Wind Strength."""
-        return self._data.get('ffVento')
+        return self._data.get("ffVento")
 
     @property
     def wind_direction(self):
         """Wind direction."""
-        return self._data['ddVento']
+        return self._data["ddVento"]
 
     @property
     def weather_type(self):
         """Weather type."""
-        return self._data['idTipoTempo']
+        return self._data["idTipoTempo"]
 
     @property
     def weather_type_description(self):
