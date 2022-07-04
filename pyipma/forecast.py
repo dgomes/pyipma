@@ -102,12 +102,12 @@ class Forecast:
     @property
     def weather_type_description(self):
         """Weather type description"""
-        return self._weather_type_description[self.weather_type].descIdWeatherTypeEN
+        return self._weather_type_description[self.weather_type].descWeatherTypeEN
 
     @property
     def weather_type_description_pt(self):
         """Weather type description in portuguese"""
-        return self._weather_type_description[self.weather_type].descIdWeatherTypePT
+        return self._weather_type_description[self.weather_type].descWeatherTypePT
 
     def __repr__(self):
         if self.humidity is None:
