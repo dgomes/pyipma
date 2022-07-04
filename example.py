@@ -18,6 +18,7 @@ async def main():
 
         forecasts = await location.forecast(api)
         print("Forecast for tomorrow {}".format(forecasts[0]))
+        print(forecasts[0].wind_strength)
 
         sea_forecast = await location.sea_forecast(api)
         print("Sea forecast for today {}".format(sea_forecast))

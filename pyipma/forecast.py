@@ -87,6 +87,7 @@ class Forecast:
     @property
     def wind_strength(self):
         """Wind Strength."""
+        LOGGER.warning("This method is deprecated returning None")
         return self._data.get("ffVento")
 
     @property
