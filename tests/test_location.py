@@ -1,8 +1,10 @@
 import aiohttp
+import json
 import pytest
 from mock import patch
 from pyipma.api import IPMA_API
 from pyipma.location import Location
+from aioresponses import aioresponses
 
 
 def dump_json(data):
@@ -22,32 +24,34 @@ async def test_location():
 
         # 1210702 is the idEstacao for Aveiro (Universidade)
         assert location.id_station == 1210702
-        with patch.object(
-            api,
-            "retrieve",
-            return_value=dump_json(
-                {
-                    "2022-07-27T15:00": {
-                        "1210702": {
-                            "intensidadeVentoKM": 20.9,
-                            "temperatura": 19.0,
-                            "radiacao": 141.4,
-                            "idDireccVento": 9,
-                            "precAcumulada": 0.0,
-                            "intensidadeVento": 5.8,
-                            "humidade": 81.0,
-                            "pressao": 1017.1,
-                        },
-                    }
-                }
-            ),
-        ):
+
+        with aioresponses() as mocked:
+            mocked.get(
+                "https://api.ipma.pt/open-data/observation/meteorology/stations/observations.json",
+                status=200,
+                payload=json.load(open("fixtures/observations.json")),
+            )
             obs = await location.observation(api)
-            assert obs.temperature == 19.0
-            assert obs.humidity == 81.0
+            assert obs.temperature == 17.7
+            assert obs.humidity == 88.0
 
-        # 1010500 is the globalIdLocal for Aveiro
-        assert location.global_id_local == 1010500
+            # 1010500 is the globalIdLocal for Aveiro
+            assert location.global_id_local == 1010500
 
-        forecasts = await location.forecast(api)
-        assert forecasts[0].temperature == 19.8
+            mocked.get(
+                "http://api.ipma.pt/public-data/forecast/aggregate/1010500.json",
+                status=200,
+                payload=json.load(open("fixtures/1010500.json")),
+            )
+            mocked.get(
+                "https://api.ipma.pt/open-data/weather-type-classe.json",
+                status=200,
+                payload=json.load(open("fixtures/weather-type-classe.json")),
+            )
+            mocked.get(
+                "http://api.ipma.pt/public-data/forecast/locations.json",
+                status=200,
+                payload=json.load(open("fixtures/locations.json")),
+            )
+            forecasts = await location.forecast(api)
+            assert forecasts[0].temperature == 19.5

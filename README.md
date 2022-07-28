@@ -39,6 +39,7 @@ asyncio.get_event_loop().run_until_complete(main())
 
 ## Changelog
 
+* 3.0.0 - Backend fully rewritten, but keeping backward compatibility at interface level
 * 2.1.5 - Better logging and code formated with black
 * 2.1.0 - Sea Forecast
 * 2.0.5 - Look for previous observations when no temperature/humidity available
