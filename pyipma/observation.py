@@ -4,7 +4,6 @@ import logging
 from dataclasses import dataclass
 
 from .api import IPMA_API
-from .consts import WIND_DIRECTION_ID
 
 LOGGER = logging.getLogger(__name__)
 
