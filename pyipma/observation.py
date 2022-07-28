@@ -8,6 +8,18 @@ from .consts import WIND_DIRECTION_ID
 
 LOGGER = logging.getLogger(__name__)
 
+WIND_DIRECTION_ID = {
+    0: "",
+    1: "N",
+    2: "NE",
+    3: "E",
+    4: "SE",
+    5: "S",
+    6: "SW",
+    7: "W",
+    8: "NW",
+    9: "N",
+}
 
 @dataclass
 class Observation:

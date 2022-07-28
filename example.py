@@ -9,7 +9,7 @@ async def main():
     async with aiohttp.ClientSession() as session:
         api = IPMA_API(session)
 
-        location = await Location.get(api, 40.6517, -8.6573, sea_stations=False)
+        location = await Location.get(api, 40.6517, -8.6573, sea_stations=True)
         print("Forecast for {}".format(location.name))
         print("Nearest station is {}".format(location.station))
         print("Nearest sea station is {}".format(location.sea_station_name))
