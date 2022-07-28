@@ -1,67 +1,110 @@
 """Representation of a Weather Observation from IPMA."""
+import datetime
 import logging
-from collections import namedtuple
+from dataclasses import dataclass
 
 from .api import IPMA_API
-from .consts import API_OBSERVATION_OBSERVATIONS, WIND_DIRECTION_ID
+from .consts import WIND_DIRECTION_ID
 
 LOGGER = logging.getLogger(__name__)
 
 
+@dataclass
 class Observation:
     """Represents a Meteo Station (district)."""
 
-    def __init__(self, station, last_observation, data):
-        self._data = data
-        self._station = station
-        self._last_observation = last_observation
+    intensidadeVentoKM: float | None
+    temperatura: float | None
+    radiacao: float | None
+    idDireccVento: int
+    precAcumulada: float | None
+    intensidadeVento: float | None
+    humidade: float | None
+    pressao: float | None
+    timestamp: datetime.datetime
+    idEstacao: int
 
     @property
     def temperature(self):
-        if self._data["temperatura"] == -99:
-            LOGGER.warning("No temperature available.")
-            return None
-        return self._data["temperatura"]
+        """Temperatura do ar registada a 1.5 metros de altura, média da hora (ºC)."""
+        return self.temperatura
 
     @property
     def radiation(self):
-        return self._data["radiacao"]
+        """Radiação solar (kJ/m2)."""
+        return self.radiacao
 
     @property
     def wind_intensity_km(self):
-        if self._data["intensidadeVentoKM"] == -99:
-            LOGGER.warning("No wind intensity available.")
-            return None
-        return self._data["intensidadeVentoKM"]
+        """Intensidade do vento registada a 10 metros de altura (km/h)."""
+        return self.intensidadeVentoKM
 
     @property
     def wind_intensity(self):
-        return self._data["intensidadeVento"]
+        """Intensidade do vento registada a 10 metros de altura (m/s)."""
+        return self.intensidadeVento
 
     @property
     def wind_direction(self):
-        return WIND_DIRECTION_ID[self._data["idDireccVento"]]
+        """Rumo predominante do vento registado a 10 metros de altura."""
+        return WIND_DIRECTION_ID[self.idDireccVento]
 
     @property
     def accumulated_precipitation(self):
-        if self._data["precAcumulada"] == -99:
-            LOGGER.warning("No Accumulated Precipitation available")
-            return None
-        return self._data["precAcumulada"]
+        """Precipitação registada a 1.5 metros de altura, valor acumulado da hora (mm)."""
+        return self.precAcumulada
 
     @property
     def humidity(self):
-        if self._data["humidade"] == -99:
-            LOGGER.warning("No Humidity available")
-            return None
-        return self._data["humidade"]
+        """Humidade relativa do ar registada a 1.5 metros de altura, média da hora (%)."""
+        return self.humidade
 
     @property
     def pressure(self):
-        if self._data["pressao"] == -99:
-            LOGGER.warning("No Pressure available")
-            return None
-        return self._data["pressao"]
+        """Pressão atmosférica, reduzida ao nível médio do mar (NMM), média da hora (hPa)."""
+        return self.pressao
 
-    def __repr__(self):
-        return f"Weather in {self._station} at {self._last_observation}: {self.temperature}°C, {self.humidity}%"
+    def __str__(self):
+        """Representation of a weather Observation in EN."""
+        return f"Weather in {self.idEstacao} at {self.timestamp}: {self.temperature}°C, {self.humidity}%"
+
+
+class Observations:
+    """Represents a Meteo Station endpoint that retrieves Observation objects."""
+
+    def __init__(
+        self,
+        api: IPMA_API,
+    ):
+        self.data = None
+        self.api = api
+
+    async def get(self, idEstacao):
+        """Retrieve observations from IPMA."""
+        raw = await self.api.retrieve(
+            url="https://api.ipma.pt/open-data/observation/meteorology/stations/observations.json"
+        )
+        idEstacao = str(idEstacao)
+
+        self.data = sorted(
+            [
+                Observation(
+                    r["intensidadeVentoKM"] if r["intensidadeVentoKM"] != -99 else None,
+                    r["temperatura"] if r["temperatura"] != -99 else None,
+                    r["radiacao"] if r["radiacao"] != -99 else None,
+                    r["idDireccVento"],
+                    r["precAcumulada"] if r["precAcumulada"] != -99 else None,
+                    r["intensidadeVento"] if r["intensidadeVento"] != 99 else None,
+                    r["humidade"] if r["humidade"] != -99 else None,
+                    r["pressao"] if r["pressao"] != -99 else None,
+                    datetime.datetime.strptime(timestamp, "%Y-%m-%dT%H:%M"),
+                    int(estacao),
+                )
+                for timestamp in raw
+                for estacao, r in raw[timestamp].items()
+                if r is not None and estacao == idEstacao
+            ],
+            key=lambda d: d.timestamp,
+        )
+
+        return self.data

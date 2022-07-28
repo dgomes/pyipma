@@ -9,9 +9,10 @@ LOGGER.setLevel(logging.DEBUG)
 
 
 class IPMA_API:  # pylint: disable=invalid-name
-    """Interfaces to http://api.ipma.pt"""
+    """Interfaces to http://api.ipma.pt service."""
 
     def __init__(self, websession):
+        """Initializer API session."""
         self.websession = websession
 
     async def retrieve(self, url, **kwargs):
