@@ -13,7 +13,6 @@ from pyipma.location import Location
 def dump_json(data):
     return data
 
-
 @freeze_time("2022-07-28")
 async def test_location():
     async with aiohttp.ClientSession() as session:
@@ -57,4 +56,4 @@ async def test_location():
                 payload=json.load(open("fixtures/locations.json")),
             )
             forecasts = await location.forecast(api)
-            assert forecasts[0].temperature == 19.6
+            assert forecasts[0].temperature == 19.5

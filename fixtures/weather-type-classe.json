@@ -1,0 +1,166 @@
+{
+    "owner":"IPMA",
+    "country":"PT",
+    "data":[
+       {
+          "descWeatherTypeEN":"--",
+          "descWeatherTypePT":"---",
+          "idWeatherType":-99
+       },
+       {
+          "descWeatherTypeEN":"No information",
+          "descWeatherTypePT":"Sem informa\u00e7\u00e3o",
+          "idWeatherType":0
+       },
+       {
+          "descWeatherTypeEN":"Clear sky",
+          "descWeatherTypePT":"C\u00e9u limpo",
+          "idWeatherType":1
+       },
+       {
+          "descWeatherTypeEN":"Partly cloudy",
+          "descWeatherTypePT":"C\u00e9u pouco nublado",
+          "idWeatherType":2
+       },
+       {
+          "descWeatherTypeEN":"Sunny intervals",
+          "descWeatherTypePT":"C\u00e9u parcialmente nublado",
+          "idWeatherType":3
+       },
+       {
+          "descWeatherTypeEN":"Cloudy ",
+          "descWeatherTypePT":"C\u00e9u muito nublado ou encoberto",
+          "idWeatherType":4
+       },
+       {
+          "descWeatherTypeEN":"Cloudy (High cloud)",
+          "descWeatherTypePT":"C\u00e9u nublado por nuvens altas",
+          "idWeatherType":5
+       },
+       {
+          "descWeatherTypeEN":"Showers/rain",
+          "descWeatherTypePT":"Aguaceiros/chuva",
+          "idWeatherType":6
+       },
+       {
+          "descWeatherTypeEN":"Light showers/rain",
+          "descWeatherTypePT":"Aguaceiros/chuva fracos",
+          "idWeatherType":7
+       },
+       {
+          "descWeatherTypeEN":"Heavy showers/rain",
+          "descWeatherTypePT":"Aguaceiros/rain fortes",
+          "idWeatherType":8
+       },
+       {
+          "descWeatherTypeEN":"Rain/showers",
+          "descWeatherTypePT":"Chuva/aguaceiros",
+          "idWeatherType":9
+       },
+       {
+          "descWeatherTypeEN":"Light rain",
+          "descWeatherTypePT":"Chuva fraca ou chuvisco",
+          "idWeatherType":10
+       },
+       {
+          "descWeatherTypeEN":"Heavy rain/showers",
+          "descWeatherTypePT":"Chuva/aguaceiros forte",
+          "idWeatherType":11
+       },
+       {
+          "descWeatherTypeEN":"Intermittent rain",
+          "descWeatherTypePT":"Per\u00edodos de chuva",
+          "idWeatherType":12
+       },
+       {
+          "descWeatherTypeEN":"Intermittent ligth rain",
+          "descWeatherTypePT":"Per\u00edodos de chuva fraca",
+          "idWeatherType":13
+       },
+       {
+          "descWeatherTypeEN":"Intermittent heavy rain",
+          "descWeatherTypePT":"Per\u00edodos de chuva forte",
+          "idWeatherType":14
+       },
+       {
+          "descWeatherTypeEN":"Drizzle",
+          "descWeatherTypePT":"Chuvisco",
+          "idWeatherType":15
+       },
+       {
+          "descWeatherTypeEN":"Mist",
+          "descWeatherTypePT":"Neblina",
+          "idWeatherType":16
+       },
+       {
+          "descWeatherTypeEN":"Fog",
+          "descWeatherTypePT":"Nevoeiro ou nuvens baixas",
+          "idWeatherType":17
+       },
+       {
+          "descWeatherTypeEN":"Snow",
+          "descWeatherTypePT":"Neve",
+          "idWeatherType":18
+       },
+       {
+          "descWeatherTypeEN":"Thunderstorms",
+          "descWeatherTypePT":"Trovoada",
+          "idWeatherType":19
+       },
+       {
+          "descWeatherTypeEN":"Showers and thunderstorms",
+          "descWeatherTypePT":"Aguaceiros e possibilidade de trovoada",
+          "idWeatherType":20
+       },
+       {
+          "descWeatherTypeEN":"Hail",
+          "descWeatherTypePT":"Granizo",
+          "idWeatherType":21
+       },
+       {
+          "descWeatherTypeEN":"Frost",
+          "descWeatherTypePT":"Geada",
+          "idWeatherType":22
+       },
+       {
+          "descWeatherTypeEN":"Rain and thunderstorms",
+          "descWeatherTypePT":"Chuva  e possibilidade de trovoada",
+          "idWeatherType":23
+       },
+       {
+          "descWeatherTypeEN":"Convective clouds",
+          "descWeatherTypePT":"Nebulosidade convectiva",
+          "idWeatherType":24
+       },
+       {
+          "descWeatherTypeEN":"Partly cloudy",
+          "descWeatherTypePT":"C\u00e9u com per\u00edodos de muito nublado",
+          "idWeatherType":25
+       },
+       {
+          "descWeatherTypeEN":"Fog",
+          "descWeatherTypePT":"Nevoeiro",
+          "idWeatherType":26
+       },
+       {
+          "descWeatherTypeEN":"Cloudy",
+          "descWeatherTypePT":"C\u00e9u nublado",
+          "idWeatherType":27
+       },
+       {
+          "descWeatherTypeEN":"Snow showers",
+          "descWeatherTypePT":"Aguaceiros de neve",
+          "idWeatherType":28
+       },
+       {
+          "descWeatherTypeEN":"Rain and snow",
+          "descWeatherTypePT":"Chuva e Neve",
+          "idWeatherType":29
+       },
+       {
+          "descWeatherTypeEN":"Rain and snow",
+          "descWeatherTypePT":"Chuva e Neve",
+          "idWeatherType":30
+       }
+    ]
+ }
