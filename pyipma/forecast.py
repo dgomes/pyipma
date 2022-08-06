@@ -5,6 +5,8 @@ from dataclasses import dataclass
 from datetime import timedelta
 from enum import Enum
 
+from typing import Optional
+
 from .api import IPMA_API
 from .auxiliar import Forecast_Location, Forecast_Locations, Weather_Type, Weather_Types
 
@@ -23,22 +25,22 @@ class TipoTemperatura(Enum):
 class Forecast:
     """Represents a Weather Forecast."""
 
-    tMed: float | None
-    tMin: float | None
-    ffVento: float | None
+    tMed: Optional[float]
+    tMin: Optional[float]
+    ffVento: Optional[float]
     idFfxVento: int
     dataUpdate: datetime.datetime
-    tMax: float | None
-    iUv: float | None
+    tMax: Optional[float]
+    iUv: Optional[float]
     intervaloHora: str
     idTipoTempo: Weather_Type
-    hR: float | None
+    hR: Optional[float]
     location: Forecast_Location
-    probabilidadePrecipita: float | None
+    probabilidadePrecipita: Optional[float]
     idPeriodo: int
     dataPrev: datetime.datetime
     ddVento: str
-    utci: float | None = None
+    utci: Optional[float] = None
 
     @property
     def update_date(self):

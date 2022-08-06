@@ -3,6 +3,8 @@ import datetime
 import logging
 from dataclasses import dataclass
 
+from typing import Optional
+
 from .api import IPMA_API
 
 LOGGER = logging.getLogger(__name__)
@@ -25,14 +27,14 @@ WIND_DIRECTION_ID = {
 class Observation:
     """Represents a Meteo Station (district)."""
 
-    intensidadeVentoKM: float | None
-    temperatura: float | None
-    radiacao: float | None
+    intensidadeVentoKM: Optional[float]
+    temperatura: Optional[float]
+    radiacao: Optional[float]
     idDireccVento: int
-    precAcumulada: float | None
-    intensidadeVento: float | None
-    humidade: float | None
-    pressao: float | None
+    precAcumulada: Optional[float]
+    intensidadeVento: Optional[float]
+    humidade: Optional[float]
+    pressao: Optional[float]
     timestamp: datetime.datetime
     idEstacao: int
 

@@ -4,6 +4,7 @@ import aiohttp
 import pytest
 from aioresponses import aioresponses
 from mock import patch
+from freezegun import freeze_time
 
 from pyipma.api import IPMA_API
 from pyipma.location import Location
@@ -13,7 +14,7 @@ def dump_json(data):
     return data
 
 
-@pytest.mark.asyncio
+@freeze_time("2022-07-28")
 async def test_location():
     async with aiohttp.ClientSession() as session:
         api = IPMA_API(session)
