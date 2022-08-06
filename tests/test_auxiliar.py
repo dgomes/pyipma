@@ -1,5 +1,6 @@
 import aiohttp
 import pytest
+
 from pyipma.api import IPMA_API
 from pyipma.auxiliar import (
     District,

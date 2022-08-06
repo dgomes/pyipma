@@ -3,10 +3,12 @@ import json
 
 import aiohttp
 import pytest
-from pyipma.api import IPMA_API
-from pyipma.forecast import Forecast, Forecast_days
 from aioresponses import aioresponses
 from freezegun import freeze_time
+
+from pyipma.api import IPMA_API
+from pyipma.forecast import Forecast, Forecast_days
+
 
 @freeze_time("2022-07-28")
 async def test_forecast():
@@ -37,6 +39,8 @@ async def test_forecast():
 
             assert len(aveiro_forecast) == 10  # mocked days forecasted
 
-            assert aveiro_forecast[0].dataPrev == datetime.datetime(2022, 7, 28, 0, 0, tzinfo=datetime.timezone.utc)
+            assert aveiro_forecast[0].dataPrev == datetime.datetime(
+                2022, 7, 28, 0, 0, tzinfo=datetime.timezone.utc
+            )
             assert aveiro_forecast[0].location.globalIdLocal == 1010500
             assert aveiro_forecast[1].idTipoTempo.desc() == "Céu pouco nublado"

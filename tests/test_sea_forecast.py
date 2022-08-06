@@ -2,6 +2,7 @@ import datetime
 
 import aiohttp
 import pytest
+
 from pyipma.api import IPMA_API
 from pyipma.sea_forecast import SeaForecast, SeaForecasts
 

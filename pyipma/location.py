@@ -103,7 +103,9 @@ class Location:
 
         for forecast_location in self.forecast_locations[:10]:
             try:
-                forecasts = await forecast_days.get(forecast_location.globalIdLocal, period)
+                forecasts = await forecast_days.get(
+                    forecast_location.globalIdLocal, period
+                )
                 break
             except Exception as err:
                 LOGGER.warning(

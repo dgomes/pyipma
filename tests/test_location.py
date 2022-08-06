@@ -1,10 +1,12 @@
-import aiohttp
 import json
+
+import aiohttp
 import pytest
+from aioresponses import aioresponses
 from mock import patch
+
 from pyipma.api import IPMA_API
 from pyipma.location import Location
-from aioresponses import aioresponses
 
 
 def dump_json(data):

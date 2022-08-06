@@ -1,8 +1,8 @@
 """Representation of a Weather Forecast from IPMA."""
 import datetime
-from datetime import timedelta
 import logging
 from dataclasses import dataclass
+from datetime import timedelta
 from enum import Enum
 
 from .api import IPMA_API
@@ -173,7 +173,9 @@ class Forecast_days:
                     utci=r.get("utci"),
                 )
                 for r in raw
-                if r["idPeriodo"] == period and datetime.datetime.strptime(r["dataPrev"], "%Y-%m-%dT%H:%M:%S") > (datetime.datetime.now() - timedelta(hours=1))
+                if r["idPeriodo"] == period
+                and datetime.datetime.strptime(r["dataPrev"], "%Y-%m-%dT%H:%M:%S")
+                > (datetime.datetime.now() - timedelta(hours=1))
             ],
             key=lambda d: d.dataPrev,
         )

@@ -3,9 +3,10 @@ import json
 
 import aiohttp
 import pytest
+from aioresponses import aioresponses
+
 from pyipma.api import IPMA_API
 from pyipma.observation import Observation, Observations
-from aioresponses import aioresponses
 
 
 async def test_observations():

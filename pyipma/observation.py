@@ -20,6 +20,7 @@ WIND_DIRECTION_ID = {
     9: "N",
 }
 
+
 @dataclass
 class Observation:
     """Represents a Meteo Station (district)."""
