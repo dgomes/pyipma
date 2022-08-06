@@ -72,7 +72,7 @@ async def test_station():
 
         s = await stations.get(40.6405, -8.6538)
 
-        assert len(s) == 196
+        assert len(s) == 197
         assert s[0] == Station(
             1210702, "Aveiro (Universidade)", (40.63529722, -8.65958333)
         )

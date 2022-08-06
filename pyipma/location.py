@@ -75,12 +75,12 @@ class Location:
     @property
     def station_latitude(self):
         """Weather station latitude."""
-        return self.observation_stations[0].latitude
+        return self.observation_stations[0].coordinates[1]
 
     @property
     def station_longitude(self):
         """Weather station longitude."""
-        return self.observation_stations[0].longitude
+        return self.observation_stations[0].coordinates[0]
 
     @property
     def sea_station_name(self):
@@ -96,14 +96,14 @@ class Location:
             return self.sea_stations[0].globalIdLocal
         return None
 
-    async def forecast(self, api):
+    async def forecast(self, api, period=24):
         """Retrieve forecasts of location."""
-        forecast_10days = Forecast_days(api)
+        forecast_days = Forecast_days(api)
         forecasts = None
 
         for forecast_location in self.forecast_locations[:10]:
             try:
-                forecasts = await forecast_10days.get(forecast_location.globalIdLocal)
+                forecasts = await forecast_days.get(forecast_location.globalIdLocal, period)
                 break
             except Exception as err:
                 LOGGER.warning(

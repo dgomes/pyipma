@@ -1,5 +1,6 @@
 """Representation of a Weather Forecast from IPMA."""
 import datetime
+from datetime import timedelta
 import logging
 from dataclasses import dataclass
 from enum import Enum
@@ -24,6 +25,7 @@ class Forecast:
 
     tMed: float | None
     tMin: float | None
+    ffVento: float | None
     idFfxVento: int
     dataUpdate: datetime.datetime
     tMax: float | None
@@ -37,17 +39,6 @@ class Forecast:
     dataPrev: datetime.datetime
     ddVento: str
     utci: float | None = None
-
-    def _temperature(self):
-        """Temperature in Celcius."""
-        if self.tMed:
-            return self.tMed
-        # Create an average with MIN and MAX
-        LOGGER.debug("Temperature not available, averaging Max and Min")
-        return round(
-            (self.tMax - self.tMin) / 2 + self.tMin,
-            1,
-        )
 
     @property
     def update_date(self):
@@ -67,17 +58,24 @@ class Forecast:
     @property
     def temperature(self):
         """Average Temperature."""
-        return self._temperature()
+        if self.tMed:
+            return self.tMed
+        # Create an average with MIN and MAX
+        LOGGER.debug("Temperature not available, averaging Max and Min")
+        return round(
+            (self.tMax - self.tMin) / 2 + self.tMin,
+            1,
+        )
 
     @property
     def max_temperature(self):
         """Maximum Temperature."""
-        return self._temperature(TipoTemperatura.MAX)
+        return self.tMax if self.tMax else self.tMed
 
     @property
     def min_temperature(self):
         """Minimum Temperature."""
-        return self._temperature(TipoTemperatura.MIN)
+        return self.tMin
 
     @property
     def feels_like_temperature(self):
@@ -98,6 +96,11 @@ class Forecast:
     def wind_direction(self):
         """Wind direction."""
         return self.ddVento
+
+    @property
+    def wind_strength(self):
+        """Wind strenght."""
+        return self.ffVento
 
     @property
     def weather_type(self):
@@ -125,20 +128,19 @@ class Forecast:
 class Forecast_days:
     """Represents Forecast endpoint that retrieves 10 days objects."""
 
-    def __init__(self, api: IPMA_API, periodo: int = 24):
-        """
-        periodo: 1: 3days, 3: 5days, 24: 10days
-        """
+    def __init__(self, api: IPMA_API):
+        """Initialize Forecast_days."""
         self.data = None
         self.api = api
-        assert periodo in [1, 3, 24], "Forecast period must be 1h, 3h or 24h"
-        self.periodo = periodo
 
         self.weather_type = Weather_Types(api)
         self.forecast_locations = Forecast_Locations(api)
 
-    async def get(self, globalIdLocal):
-        """Retrieve forecasts from IPMA."""
+    async def get(self, globalIdLocal, period: int = 24):
+        """Retrieve forecasts from IPMA.
+        periodo: 1: 3days, 3: 5days, 24: 10days
+        """
+        assert period in [1, 3, 24], "Forecast period must be 1h, 3h or 24h"
         raw = await self.api.retrieve(
             url=f"http://api.ipma.pt/public-data/forecast/aggregate/{globalIdLocal}.json"
         )
@@ -147,6 +149,7 @@ class Forecast_days:
                 Forecast(
                     tMed=float(r["tMed"]) if r.get("tMed") else None,
                     tMin=float(r["tMin"]) if r.get("tMin") else None,
+                    ffVento=float(r["ffVento"]) if r.get("ffVento") else None,
                     idFfxVento=r.get("idFfxVento"),
                     dataUpdate=datetime.datetime.strptime(
                         r["dataUpdate"], "%Y-%m-%dT%H:%M:%S"
@@ -160,17 +163,17 @@ class Forecast_days:
                         int(r["globalIdLocal"])
                     ),
                     probabilidadePrecipita=float(r["probabilidadePrecipita"])
-                    if r["probabilidadePrecipita"] != "-99"
+                    if r["probabilidadePrecipita"] != -99
                     else None,
                     idPeriodo=r["idPeriodo"],
                     dataPrev=datetime.datetime.strptime(
                         r["dataPrev"], "%Y-%m-%dT%H:%M:%S"
-                    ),
+                    ).replace(tzinfo=datetime.timezone.utc),
                     ddVento=r["ddVento"],
                     utci=r.get("utci"),
                 )
                 for r in raw
-                if r["idPeriodo"] == self.periodo
+                if r["idPeriodo"] == period and datetime.datetime.strptime(r["dataPrev"], "%Y-%m-%dT%H:%M:%S") > (datetime.datetime.now() - timedelta(hours=1))
             ],
             key=lambda d: d.dataPrev,
         )

@@ -54,4 +54,4 @@ async def test_location():
                 payload=json.load(open("fixtures/locations.json")),
             )
             forecasts = await location.forecast(api)
-            assert forecasts[0].temperature == 19.5
+            assert forecasts[0].temperature == 19.6

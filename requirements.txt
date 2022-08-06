@@ -4,3 +4,4 @@ aiohttp
 
 pytest
 aioresponses
+freezegun
