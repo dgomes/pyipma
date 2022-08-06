@@ -1,3 +1,7 @@
 bs4
 geopy
 aiohttp
+
+pytest
+aioresponses
+freezegun

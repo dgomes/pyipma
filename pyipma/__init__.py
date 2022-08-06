@@ -1,3 +1,2 @@
-from .consts import *
-
-__version__ = "2.1.5"
+"""Python library for http://api.ipma.pt."""
+__version__ = "3.0.0"
