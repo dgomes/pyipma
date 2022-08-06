@@ -99,7 +99,7 @@ class Location:
     async def forecast(self, api, period=24):
         """Retrieve forecasts of location."""
         forecast_days = Forecast_days(api)
-        forecasts = None
+        forecasts = []
 
         for forecast_location in self.forecast_locations[:10]:
             try:
@@ -117,6 +117,7 @@ class Location:
     async def observation(self, api):
         """Retrieve observation of Estacao."""
         obs = Observations(api)
+        observations = []
         for station in self.observation_stations[:10]:
             try:
                 observations = await obs.get(station.idEstacao)
@@ -126,12 +127,12 @@ class Location:
                     "Could not retrieve obsertation for %s: %s", station, err
                 )
 
-        return observations[0]
+        return observations[0] if len(observations) else None
 
     async def sea_forecast(self, api):
         """Retrieve today's sea forecast for closest sea location"""
         forecast_3days = SeaForecasts(api)
-        forecasts = None
+        forecasts = []
 
         for sea_location in self.sea_stations[:10]:
             try:

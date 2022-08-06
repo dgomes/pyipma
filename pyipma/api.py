@@ -1,7 +1,7 @@
 """API to IPMA."""
 import ast
 import logging
-
+import json
 import aiohttp
 
 LOGGER = logging.getLogger(__name__)
