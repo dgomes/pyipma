@@ -2,12 +2,11 @@ import datetime
 import json
 
 import aiohttp
-import pytest
 from aioresponses import aioresponses
 from freezegun import freeze_time
 
 from pyipma.api import IPMA_API
-from pyipma.forecast import Forecast, Forecast_days
+from pyipma.forecast import Forecast_days
 
 
 @freeze_time("2022-07-28")

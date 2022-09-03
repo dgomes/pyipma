@@ -12,6 +12,7 @@ from .auxiliar import (
 from .forecast import Forecast_days
 from .observation import Observations
 from .sea_forecast import SeaForecasts
+from .rcm import RCM_day
 
 LOGGER = logging.getLogger(__name__)  # pylint: disable=invalid-name
 
@@ -21,10 +22,13 @@ class Location:
 
     def __init__(
         self,
+        latitude: float,
+        longitude: float,
         forecast_locations: list[Forecast_Location],
         observation_stations: list[Station],
         sea_stations: list[Sea_Location],
     ):
+        self.coordinates = (longitude, latitude)
         self.forecast_locations = forecast_locations
         self.observation_stations = observation_stations
         self.sea_stations = sea_stations
@@ -50,7 +54,7 @@ class Location:
             near_locations[0].local,
         )
 
-        return Location(near_locations, near_stations, near_sea_locations)
+        return Location(lat, lon, near_locations, near_stations, near_sea_locations)
 
     @property
     def name(self):
@@ -130,7 +134,7 @@ class Location:
         return observations[0] if len(observations) else None
 
     async def sea_forecast(self, api):
-        """Retrieve today's sea forecast for closest sea location"""
+        """Retrieve today's sea forecast for closest sea location."""
         forecast_3days = SeaForecasts(api)
         forecasts = []
 
@@ -144,3 +148,21 @@ class Location:
                 )
 
         return forecasts
+
+    async def fire_risk(self, api, day=0):
+        """Retrieve Fire Risk (RCM) for DICO region closest to the current location."""
+        rcms = RCM_day(api, day)
+        risk = None
+
+        try:
+            risks = await rcms.get(*self.coordinates)
+            if risks:
+                risk = risks[0]
+        except Exception as err:
+            LOGGER.warning(
+                "Could not retrieve RCM for %s: %s",
+                "today" if day == 0 else "tomorrow",
+                err,
+            )
+
+        return risk

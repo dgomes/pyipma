@@ -8,6 +8,7 @@ from freezegun import freeze_time
 
 from pyipma.api import IPMA_API
 from pyipma.location import Location
+from pyipma.rcm import RCM
 
 
 def dump_json(data):
@@ -55,5 +56,13 @@ async def test_location():
                 status=200,
                 payload=json.load(open("fixtures/locations.json")),
             )
+            mocked.get(
+                "http://api.ipma.pt/open-data/forecast/meteorology/rcm/rcm-d0.json",
+                status=200,
+                payload=json.load(open("fixtures/rcm-d0.json")),
+            )
             forecasts = await location.forecast(api)
             assert forecasts[0].temperature == 19.5
+
+            rcm = await location.fire_risk(api)
+            assert rcm == RCM(dico='0105', rcm=2, coordinates=(40.6413, -8.6535)) 
