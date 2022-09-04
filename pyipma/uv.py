@@ -48,6 +48,7 @@ class UV_risks:
         self.endpoint = f"https://api.ipma.pt/open-data/forecast/meteorology/uv/uv.json"
 
     async def get(self, globalIdLocal=None):
+        """Retrive UV risk for globalIdLocal, or all."""
         raw = await self.api.retrieve(url=self.endpoint)
 
         data = [

@@ -13,6 +13,7 @@ from .forecast import Forecast_days
 from .observation import Observations
 from .sea_forecast import SeaForecasts
 from .rcm import RCM_day
+from .uv import UV_risks
 
 LOGGER = logging.getLogger(__name__)  # pylint: disable=invalid-name
 
@@ -166,3 +167,19 @@ class Location:
             )
 
         return risk
+
+    async def uv_risk(self, api):
+        """Retrieve UV Risk for the current location."""
+        uvs = UV_risks(api)
+
+        try:
+            risks = await uvs.get(self.global_id_local)
+
+            return risks[0]
+        except Exception as err:
+            LOGGER.warning(
+                "Could not retrieve UV for %s: %s",
+                self.global_id_local,
+                err,
+            )
+        return None

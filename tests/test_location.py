@@ -5,10 +5,12 @@ import pytest
 from aioresponses import aioresponses
 from mock import patch
 from freezegun import freeze_time
+from datetime import datetime
 
 from pyipma.api import IPMA_API
 from pyipma.location import Location
 from pyipma.rcm import RCM
+from pyipma.uv import UV
 
 
 def dump_json(data):
@@ -62,8 +64,22 @@ async def test_location():
                 status=200,
                 payload=json.load(open("fixtures/rcm-d0.json")),
             )
+            mocked.get(
+                "https://api.ipma.pt/open-data/forecast/meteorology/uv/uv.json",
+                status=200,
+                payload=json.load(open("fixtures/uv.json")),
+            )
             forecasts = await location.forecast(api)
             assert forecasts[0].temperature == 19.5
 
             rcm = await location.fire_risk(api)
             assert rcm == RCM(dico="0105", rcm=2, coordinates=(40.6413, -8.6535))
+
+            uv = await location.uv_risk(api)
+            assert uv == UV(
+                idPeriodo=0,
+                intervaloHora="14h-14h",
+                data=datetime(2022, 9, 4, 0, 0),
+                globalIdLocal=1010500,
+                iUv=5.9,
+            )
