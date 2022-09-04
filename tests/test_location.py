@@ -14,6 +14,7 @@ from pyipma.rcm import RCM
 def dump_json(data):
     return data
 
+
 @freeze_time("2022-07-28")
 async def test_location():
     async with aiohttp.ClientSession() as session:
@@ -65,4 +66,4 @@ async def test_location():
             assert forecasts[0].temperature == 19.5
 
             rcm = await location.fire_risk(api)
-            assert rcm == RCM(dico='0105', rcm=2, coordinates=(40.6413, -8.6535)) 
+            assert rcm == RCM(dico="0105", rcm=2, coordinates=(40.6413, -8.6535))
