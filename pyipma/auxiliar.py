@@ -7,6 +7,8 @@ from pyipma.api import IPMA_API
 
 LOGGER = logging.getLogger(__name__)  # pylint: disable=invalid-name
 
+class IPMAException(Exception):
+    pass
 
 class AuxiliarParser:
     def __init__(self, api: IPMA_API, type="location"):
@@ -31,7 +33,7 @@ class AuxiliarParser:
             raw = await self.api.retrieve(url=self.endpoint)
 
             if raw is None:
-                raise Exception(f"Could not retrieve location for {lon}, {lat}")
+                raise IPMAException(f"Could not retrieve location for {lon}, {lat}")
 
             self.data = self._data_to_obj_list(raw)
 
