@@ -30,6 +30,9 @@ class AuxiliarParser:
         if not self.data:
             raw = await self.api.retrieve(url=self.endpoint)
 
+            if raw is None:
+                raise Exception(f"Could not retrieve location for {lon}, {lat}")
+
             self.data = self._data_to_obj_list(raw)
 
             if (lon, lat) != (None, None):
