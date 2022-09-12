@@ -4,11 +4,9 @@ from dataclasses import dataclass
 from geopy import distance
 
 from pyipma.api import IPMA_API
+from pyipma import IPMAException
 
 LOGGER = logging.getLogger(__name__)  # pylint: disable=invalid-name
-
-class IPMAException(Exception):
-    pass
 
 class AuxiliarParser:
     def __init__(self, api: IPMA_API, type="location"):
