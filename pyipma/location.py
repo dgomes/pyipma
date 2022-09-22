@@ -17,7 +17,6 @@ from .uv import UV_risks
 
 LOGGER = logging.getLogger(__name__)  # pylint: disable=invalid-name
 
-
 class Location:
     """Represents a Location (district)."""
 
@@ -125,14 +124,16 @@ class Location:
         observations = []
         for station in self.observation_stations[:10]:
             try:
+                LOGGER.debug("Get Observation for %s", station.idEstacao)
                 observations = await obs.get(station.idEstacao)
-                break
+                if len(observations) and observations[0] is not None:
+                    return observations[0]
             except Exception as err:
                 LOGGER.warning(
                     "Could not retrieve obsertation for %s: %s", station, err
                 )
-
-        return observations[0] if len(observations) else None
+        LOGGER.error("Could not retrieve a valid observation for %s", self.name)
+        return None
 
     async def sea_forecast(self, api):
         """Retrieve today's sea forecast for closest sea location."""
