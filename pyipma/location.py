@@ -126,8 +126,8 @@ class Location:
             try:
                 LOGGER.debug("Get Observation for %s", station.idEstacao)
                 observations = await obs.get(station.idEstacao)
-                if len(observations) and observations[0] is not None:
-                    return observations[0]
+                if len(observations) and observations[-1] is not None:
+                    return observations[-1]
             except Exception as err:
                 LOGGER.warning(
                     "Could not retrieve obsertation for %s: %s", station, err
