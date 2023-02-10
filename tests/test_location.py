@@ -38,8 +38,9 @@ async def test_location():
                 payload=json.load(open("fixtures/observations.json")),
             )
             obs = await location.observation(api)
-            assert obs.temperature == 17.7
-            assert obs.humidity == 88.0
+            assert obs.timestamp == datetime(2022, 7, 28, 23,0)
+            assert obs.temperature == 18.7
+            assert obs.humidity == 91.0
 
             # 1010500 is the globalIdLocal for Aveiro
             assert location.global_id_local == 1010500
