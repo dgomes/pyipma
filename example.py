@@ -4,12 +4,17 @@ import aiohttp
 from pyipma.api import IPMA_API
 from pyipma.location import Location
 
+LAT, LON = 39.663396, -8.813334
+
+import logging
+logging.basicConfig()
+logging.getLogger().setLevel(logging.DEBUG)
 
 async def main():
     async with aiohttp.ClientSession() as session:
         api = IPMA_API(session)
 
-        location = await Location.get(api, 40.6517, -8.6573, sea_stations=True)
+        location = await Location.get(api, LAT, LON, sea_stations=True)
         print("Forecast for {}".format(location.name))
         print("Nearest station is {}".format(location.station))
         print("Nearest sea station is {}".format(location.sea_station_name))
