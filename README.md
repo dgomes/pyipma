@@ -39,6 +39,7 @@ asyncio.get_event_loop().run_until_complete(main())
 
 ## Changelog
 
+* 3.0.6 - Bug Fixes
 * 3.0.3 - Adds RCM (Fire Risk)
 * 3.0.2 - Changes to fully support Home Assistant integration
 * 3.0.0 - Backend fully rewritten, but keeping backward compatibility at interface level
