@@ -1,9 +1,7 @@
 import json
 
 import aiohttp
-import pytest
 from aioresponses import aioresponses
-from mock import patch
 from freezegun import freeze_time
 from datetime import datetime
 
@@ -49,6 +47,11 @@ async def test_location():
                 "http://api.ipma.pt/public-data/forecast/aggregate/1010500.json",
                 status=200,
                 payload=json.load(open("fixtures/1010500.json")),
+            )
+            mocked.get(
+                "https://api.ipma.pt/open-data/distrits-islands.json",
+                status=200,
+                payload=json.load(open("fixtures/distrits-islands.json")),
             )
             mocked.get(
                 "https://api.ipma.pt/open-data/weather-type-classe.json",

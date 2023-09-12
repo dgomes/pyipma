@@ -3,5 +3,6 @@ geopy
 aiohttp
 
 pytest
+pytest_asyncio
 aioresponses
 freezegun

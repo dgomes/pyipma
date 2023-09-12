@@ -1,7 +1,10 @@
 """Representation of a Weather Station from IPMA."""
 import logging
+from typing import List
 
 from .auxiliar import (
+    District,
+    Districts,
     Forecast_Location,
     Forecast_Locations,
     Sea_Location,
@@ -172,15 +175,20 @@ class Location:
     async def uv_risk(self, api):
         """Retrieve UV Risk for the current location."""
         uvs = UV_risks(api)
+        district_id = None
 
         try:
-            risks = await uvs.get(self.global_id_local)
-
-            return risks[0]
+            districts: List[District] = await Districts(api).get(*self.coordinates)
+            district_id = districts[0].globalIdLocal
+            if district_id:
+                result = await uvs.get(district_id)
+                if result:
+                    return result[0]
         except Exception as err:
             LOGGER.warning(
                 "Could not retrieve UV for %s: %s",
-                self.global_id_local,
+                district_id,
                 err,
             )
+
         return None
