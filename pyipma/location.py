@@ -1,9 +1,7 @@
 """Representation of a Weather Station from IPMA."""
 import logging
-from typing import List
 
 from .auxiliar import (
-    District,
     Districts,
     Forecast_Location,
     Forecast_Locations,
@@ -20,6 +18,7 @@ from .uv import UV_risks
 
 LOGGER = logging.getLogger(__name__)  # pylint: disable=invalid-name
 
+
 class Location:
     """Represents a Location (district)."""
 
@@ -35,6 +34,7 @@ class Location:
         self.forecast_locations = forecast_locations
         self.observation_stations = observation_stations
         self.sea_stations = sea_stations
+        self.districts = None
 
     @classmethod
     async def get(cls, api, lon, lat, sea_stations=False):
@@ -103,6 +103,12 @@ class Location:
             return self.sea_stations[0].globalIdLocal
         return None
 
+    async def get_districts(self, api):
+        if self.districts is None:
+            self.districts = await Districts(api).get(*self.coordinates)
+
+        return self.districts
+
     async def forecast(self, api, period=24):
         """Retrieve forecasts of location."""
         forecast_days = Forecast_days(api)
@@ -124,7 +130,6 @@ class Location:
     async def observation(self, api):
         """Retrieve observation of Estacao."""
         obs = Observations(api)
-        observations = []
         for station in self.observation_stations[:10]:
             try:
                 LOGGER.debug("Get Observation for %s", station.idEstacao)
@@ -178,7 +183,7 @@ class Location:
         district_id = None
 
         try:
-            districts: List[District] = await Districts(api).get(*self.coordinates)
+            districts = await self.get_districts(api)
             district_id = districts[0].globalIdLocal
             if district_id:
                 result = await uvs.get(district_id)
