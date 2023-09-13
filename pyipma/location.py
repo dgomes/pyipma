@@ -2,6 +2,7 @@
 import logging
 
 from .auxiliar import (
+    Districts,
     Forecast_Location,
     Forecast_Locations,
     Sea_Location,
@@ -16,6 +17,7 @@ from .rcm import RCM_day
 from .uv import UV_risks
 
 LOGGER = logging.getLogger(__name__)  # pylint: disable=invalid-name
+
 
 class Location:
     """Represents a Location (district)."""
@@ -32,6 +34,7 @@ class Location:
         self.forecast_locations = forecast_locations
         self.observation_stations = observation_stations
         self.sea_stations = sea_stations
+        self.districts = None
 
     @classmethod
     async def get(cls, api, lon, lat, sea_stations=False):
@@ -100,6 +103,12 @@ class Location:
             return self.sea_stations[0].globalIdLocal
         return None
 
+    async def get_districts(self, api):
+        if self.districts is None:
+            self.districts = await Districts(api).get(*self.coordinates)
+
+        return self.districts
+
     async def forecast(self, api, period=24):
         """Retrieve forecasts of location."""
         forecast_days = Forecast_days(api)
@@ -121,7 +130,6 @@ class Location:
     async def observation(self, api):
         """Retrieve observation of Estacao."""
         obs = Observations(api)
-        observations = []
         for station in self.observation_stations[:10]:
             try:
                 LOGGER.debug("Get Observation for %s", station.idEstacao)
@@ -172,15 +180,20 @@ class Location:
     async def uv_risk(self, api):
         """Retrieve UV Risk for the current location."""
         uvs = UV_risks(api)
+        district_id = None
 
         try:
-            risks = await uvs.get(self.global_id_local)
-
-            return risks[0]
+            districts = await self.get_districts(api)
+            district_id = districts[0].globalIdLocal
+            if district_id:
+                result = await uvs.get(district_id)
+                if result:
+                    return result[0]
         except Exception as err:
             LOGGER.warning(
                 "Could not retrieve UV for %s: %s",
-                self.global_id_local,
+                district_id,
                 err,
             )
+
         return None
