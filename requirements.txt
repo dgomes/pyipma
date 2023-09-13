@@ -1,7 +1,7 @@
-bs4
+mock
+pytest-asyncio
 geopy
 aiohttp
-
 pytest
 aioresponses
 freezegun
