@@ -39,6 +39,7 @@ asyncio.get_event_loop().run_until_complete(main())
 
 ## Changelog
 
+* 3.0.8 - Adds Weather Warnings
 * 3.0.7 - Adds UV Index (@tokenize74)
 * 3.0.6 - Bug Fixes
 * 3.0.3 - Adds RCM (Fire Risk)
