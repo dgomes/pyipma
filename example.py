@@ -8,7 +8,7 @@ from pyipma.location import Location
 LAT, LON =  37.1460511137383, -8.541564345359804    #Portimao
                     
 #LAT, LON = 39.663396, -8.813334 Leiria
-#LAT, LON = 41.221894, -8.541423 
+LAT, LON = 41.221894, -8.541423 
 
 import logging
 logging.basicConfig()
@@ -32,6 +32,10 @@ async def main():
 
         sea_forecasts = await location.sea_forecast(api)
         print("Sea forecast for today {}".format(sea_forecasts[0]))
+
+        warnings = await location.warnings(api)
+
+        print("Warnings for the area: ", warnings)
 
 
 asyncio.run(main())

@@ -15,6 +15,7 @@ from .observation import Observations
 from .sea_forecast import SeaForecasts
 from .rcm import RCM_day
 from .uv import UV_risks
+from .warnings import Warnings
 
 LOGGER = logging.getLogger(__name__)  # pylint: disable=invalid-name
 
@@ -197,3 +198,30 @@ class Location:
             )
 
         return None
+    
+    async def warnings(self, api):
+        """Retrieve Warnings for the current location."""
+
+        warnings = Warnings(api)
+
+        try:
+            districts = await self.get_districts(api)
+            area_id = districts[0].idAreaAviso
+
+            if area_id:
+                r = await warnings.get(area_id)
+                import pprint
+                pprint.pprint(r)
+                return r
+
+        except Exception as err:
+            LOGGER.warning(
+                "Could not retrieve Warnings for %s: %s",
+                area_id,
+                err,
+            )
+
+        return None
+
+
+
