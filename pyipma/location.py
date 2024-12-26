@@ -209,10 +209,7 @@ class Location:
             area_id = districts[0].idAreaAviso
 
             if area_id:
-                r = await warnings.get(area_id)
-                import pprint
-                pprint.pprint(r)
-                return r
+                return await warnings.get(area_id)
 
         except Exception as err:
             LOGGER.warning(
