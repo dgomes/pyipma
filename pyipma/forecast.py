@@ -176,8 +176,18 @@ class Forecast_days:
                 )
                 for r in raw
                 if r["idPeriodo"] == period
-                and datetime.datetime.strptime(r["dataPrev"], "%Y-%m-%dT%H:%M:%S")
-                > (datetime.datetime.now() - timedelta(hours=1))
+                and (
+                    (
+                        datetime.datetime.strptime(r["dataPrev"], "%Y-%m-%dT%H:%M:%S")
+                        > (datetime.datetime.now() - timedelta(hours=1))
+                        and period in (1, 3)
+                    )
+                    or (
+                        datetime.datetime.strptime(r["dataPrev"], "%Y-%m-%dT%H:%M:%S")
+                        > (datetime.datetime.now() - timedelta(days=1))
+                        and period == 24
+                    )
+                )
             ],
             key=lambda d: d.dataPrev,
         )

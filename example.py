@@ -30,6 +30,12 @@ async def main():
         print("Current Weather based on forecast data for the next hour: {}".format(forecasts[0]))
         print("UTCI if available: ", forecasts[0].utci)
 
+
+        forecasts = await location.forecast(api, 24)
+        print("Current Weather based on forecast data for the next days: {}".format(forecasts[0]))
+        print("UTCI if available: ", forecasts[0].utci)
+
+
         sea_forecasts = await location.sea_forecast(api)
         print("Sea forecast for today {}".format(sea_forecasts[0]))
 
