@@ -1,8 +1,14 @@
 name: Upload Python Package
 
 on:
+  push:
+    tags:
+      - "v*"
   release:
     types: [created]
+
+permissions:
+  contents: write
 
 jobs:
   deploy:
@@ -15,6 +21,17 @@ jobs:
       with:
         python-version: "3.x"
         cache: pip
+    - name: Create GitHub release
+      if: github.event_name == 'push'
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        TAG_NAME: ${{ github.ref_name }}
+      run: |
+        if gh release view "$TAG_NAME" >/dev/null 2>&1; then
+          echo "Release $TAG_NAME already exists"
+        else
+          gh release create "$TAG_NAME" --title "$TAG_NAME" --generate-notes
+        fi
     - name: Install dependencies
       run: |
         python -m pip install --upgrade pip
