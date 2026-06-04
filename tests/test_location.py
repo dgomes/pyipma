@@ -1,5 +1,4 @@
 import aiohttp
-from aioresponses import aioresponses
 from datetime import datetime
 
 from pyipma.api import IPMA_API
@@ -62,7 +61,7 @@ async def test_location():
         assert isinstance(uv.iUv, float)
 
 
-async def test_location_sea_station_properties_and_warnings():
+async def test_location_sea_station_properties_and_warnings(static_api):
     location = Location(
         latitude=40.6413,
         longitude=-8.6535,
@@ -83,37 +82,32 @@ async def test_location_sea_station_properties_and_warnings():
     assert location.sea_station_name == "Figueira da Foz, Costa"
     assert location.sea_station_global_id_local == 1060526
 
-    async with aiohttp.ClientSession() as session:
-        api = IPMA_API(session)
-
-        with aioresponses() as mocked:
-            mocked.get(
-                "https://api.ipma.pt/open-data/forecast/warnings/warnings_www.json",
-                status=200,
-                payload=[
-                    {
-                        "text": "Chuva forte",
-                        "awarenessTypeName": "Precipitação",
-                        "idAreaAviso": "AVR",
-                        "startTime": "2026-06-04T06:00:00",
-                        "awarenessLevelID": "yellow",
-                        "endTime": "2026-06-04T18:00:00",
-                    }
-                ],
-            )
-
-            warnings = await location.warnings(api)
-
-            assert warnings == [
-                Warning(
-                    "Chuva forte",
-                    "Precipitação",
-                    "AVR",
-                    datetime(2026, 6, 4, 6, 0),
-                    "yellow",
-                    datetime(2026, 6, 4, 18, 0),
-                )
+    api = static_api(
+        {
+            "https://api.ipma.pt/open-data/forecast/warnings/warnings_www.json": [
+                {
+                    "text": "Chuva forte",
+                    "awarenessTypeName": "Precipitação",
+                    "idAreaAviso": "AVR",
+                    "startTime": "2026-06-04T06:00:00",
+                    "awarenessLevelID": "yellow",
+                    "endTime": "2026-06-04T18:00:00",
+                }
             ]
+        }
+    )
+    warnings = await location.warnings(api)
+
+    assert warnings == [
+        Warning(
+            "Chuva forte",
+            "Precipitação",
+            "AVR",
+            datetime(2026, 6, 4, 6, 0),
+            "yellow",
+            datetime(2026, 6, 4, 18, 0),
+        )
+    ]
 
 
 def test_location_without_sea_stations_returns_none():

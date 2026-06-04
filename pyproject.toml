@@ -13,7 +13,7 @@ authors = [
     { name = "Diogo Gomes", email = "diogogomes@gmail.com" },
 ]
 dependencies = [
-    "aiohttp",
+    "aiohttp>=3.14",
     "geopy",
 ]
 classifiers = [
@@ -33,14 +33,14 @@ Homepage = "https://github.com/dgomes/pyipma"
 
 [project.optional-dependencies]
 test = [
-    "aioresponses",
+    "aioresponses>=0.7.8",
     "freezegun",
     "pytest",
     "pytest-asyncio",
     "pytest-cov",
 ]
 dev = [
-    "aioresponses",
+    "aioresponses>=0.7.8",
     "build",
     "flake8",
     "freezegun",

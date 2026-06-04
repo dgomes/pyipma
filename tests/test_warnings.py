@@ -1,11 +1,8 @@
 import datetime
 
-import aiohttp
 import pytest
-from aioresponses import aioresponses
 
 from pyipma import IPMAException
-from pyipma.api import IPMA_API
 from pyipma.warnings import Warning, Warnings
 
 
@@ -37,33 +34,29 @@ WARNINGS_PAYLOAD = [
 ]
 
 
-async def test_warnings_filters_green_and_area():
-    async with aiohttp.ClientSession() as session:
-        api = IPMA_API(session)
+async def test_warnings_filters_green_and_area(static_api):
+    api = static_api(
+        {
+            "https://api.ipma.pt/open-data/forecast/warnings/warnings_www.json": WARNINGS_PAYLOAD
+        }
+    )
 
-        with aioresponses() as mocked:
-            mocked.get(
-                "https://api.ipma.pt/open-data/forecast/warnings/warnings_www.json",
-                status=200,
-                payload=WARNINGS_PAYLOAD,
-            )
+    warnings = await Warnings(api).get("AVR")
 
-            warnings = await Warnings(api).get("AVR")
-
-            assert warnings == [
-                Warning(
-                    "Chuva forte",
-                    "Precipitação",
-                    "AVR",
-                    datetime.datetime(2026, 6, 4, 6, 0),
-                    "yellow",
-                    datetime.datetime(2026, 6, 4, 18, 0),
-                )
-            ]
-            assert (
-                str(warnings[0])
-                == "Chuva forte - Precipitação - 2026-06-04 06:00:00 - 2026-06-04 18:00:00"
-            )
+    assert warnings == [
+        Warning(
+            "Chuva forte",
+            "Precipitação",
+            "AVR",
+            datetime.datetime(2026, 6, 4, 6, 0),
+            "yellow",
+            datetime.datetime(2026, 6, 4, 18, 0),
+        )
+    ]
+    assert (
+        str(warnings[0])
+        == "Chuva forte - Precipitação - 2026-06-04 06:00:00 - 2026-06-04 18:00:00"
+    )
 
 
 async def test_warnings_raises_when_api_returns_none():
