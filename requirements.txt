@@ -1,8 +1,0 @@
-mock
-pytest-asyncio
-geopy
-aiohttp
-pytest
-pytest_asyncio
-aioresponses
-freezegun

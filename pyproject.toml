@@ -1,0 +1,57 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "pyipma"
+dynamic = ["version"]
+description = "Python library to retrieve information from Instituto Português do Mar e Atmosfera."
+readme = "README.md"
+requires-python = ">=3.10"
+license = "MIT"
+authors = [
+    { name = "Diogo Gomes", email = "diogogomes@gmail.com" },
+]
+dependencies = [
+    "aiohttp",
+    "geopy",
+]
+classifiers = [
+    "Intended Audience :: Developers",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Topic :: Software Development :: Libraries :: Python Modules",
+]
+
+[project.urls]
+Homepage = "https://github.com/dgomes/pyipma"
+
+[project.optional-dependencies]
+test = [
+    "aioresponses",
+    "freezegun",
+    "pytest",
+    "pytest-asyncio",
+    "pytest-cov",
+]
+dev = [
+    "aioresponses",
+    "build",
+    "flake8",
+    "freezegun",
+    "pytest",
+    "pytest-asyncio",
+    "pytest-cov",
+    "twine",
+]
+
+[tool.setuptools]
+packages = ["pyipma"]
+
+[tool.setuptools.dynamic]
+version = { attr = "pyipma.__version__" }
