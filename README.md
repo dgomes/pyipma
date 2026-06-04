@@ -9,6 +9,8 @@ Python library to retrieve information from [Instituto Português do Mar e Atmos
 
 ## Example
 
+Coordinates are passed as latitude, longitude.
+
 ```python
 import asyncio
 import aiohttp
