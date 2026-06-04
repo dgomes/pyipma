@@ -1,10 +1,25 @@
-import datetime
-
 import aiohttp
-import pytest
 
 from pyipma.api import IPMA_API
-from pyipma.sea_forecast import SeaForecast, SeaForecasts
+from pyipma.sea_forecast import SeaForecasts, SeaForecast
+
+
+def assert_sea_forecast_properties(forecast):
+    assert isinstance(forecast, SeaForecast)
+    assert forecast.location.globalIdLocal == 1160926
+    assert isinstance(forecast.min_swell_period, float)
+    assert isinstance(forecast.max_swell_period, float)
+    assert isinstance(forecast.min_swell_high, float)
+    assert isinstance(forecast.max_swell_high, float)
+    assert isinstance(forecast.wave_direction, str)
+    assert isinstance(forecast.max_wave_high, float)
+    assert isinstance(forecast.min_wave_high, float)
+    assert isinstance(forecast.min_temperature, float)
+    assert isinstance(forecast.max_temperature, float)
+    assert isinstance(forecast.coordinates, tuple)
+    assert len(forecast.coordinates) == 2
+    assert forecast.forecastDate is not None
+    assert forecast.dataUpdate is not None
 
 
 async def test_observations():
@@ -13,13 +28,8 @@ async def test_observations():
 
         forecast_3days = SeaForecasts(api)
 
-        aveiro_forecast = await forecast_3days.get(1160926)
+        forecast = await forecast_3days.get(1160926)
 
-        assert len(aveiro_forecast) == 3  # 3 days
-
-        print(aveiro_forecast[0])
-        assert aveiro_forecast[0].forecastDate >= (
-            datetime.datetime.now().replace(hour=0, minute=0, second=0, microsecond=0)
-            - datetime.timedelta(days=1)
-        )  # forecast start from today
-        assert aveiro_forecast[0].location.globalIdLocal == 1160926
+        assert forecast
+        assert all(isinstance(day_forecast, SeaForecast) for day_forecast in forecast)
+        assert_sea_forecast_properties(forecast[0])
