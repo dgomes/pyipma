@@ -62,7 +62,7 @@ class SeaForecast:
     @property
     def max_temperature(self):
         """Maximum sea surface temperature (ºC)."""
-        return self.sstMin
+        return self.sstMax
 
     @property
     def min_temperature(self):
