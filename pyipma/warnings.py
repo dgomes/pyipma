@@ -28,8 +28,9 @@ class Warnings:
     def __init__(self, api: IPMA_API) -> None:
         self.api = api
         self.endpoint = (
-            f"https://api.ipma.pt/open-data/forecast/warnings/warnings_www.json"
+            "https://api.ipma.pt/open-data/forecast/warnings/warnings_www.json"
         )
+        self.data: list[Warning] | None = None
 
     def _data_to_obj_list(self, raw: list[dict[str, Any]]) -> list[Warning]:
         # awarenessLevelID: cor / nível do aviso (e.g. "green", "yellow", "orange", "red", só existem avisos para níveis diferentes de "green", ou seja, "yellow", "orange", "red")
@@ -48,12 +49,15 @@ class Warnings:
         ]
 
     async def get(self, area: str) -> list[Warning]:
-        """Retrieve warnings for a given area."""
+        """Retrieve non-green warnings for an area, ordered by start and end time."""
         raw = await self.api.retrieve(url=self.endpoint)
 
         if raw is None:
-            raise IPMAException(f"Could not retrieve warnings")
+            raise IPMAException("Could not retrieve warnings")
 
-        self.data = [w for w in self._data_to_obj_list(raw) if w.idAreaAviso == area]
+        self.data = sorted(
+            self._data_to_obj_list([w for w in raw if w["idAreaAviso"] == area]),
+            key=lambda w: (w.startTime, w.endTime),
+        )
 
         return self.data
