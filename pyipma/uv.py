@@ -2,6 +2,7 @@
 from dataclasses import dataclass
 import datetime
 from .api import IPMA_API
+from ._parsing import number
 
 
 @dataclass
@@ -12,9 +13,12 @@ class UV:
     intervaloHora: str
     data: datetime.datetime
     globalIdLocal: int
-    iUv: float
+    iUv: float | None
 
     def __str__(self) -> str:
+        if self.iUv is None:
+            return "Sem informação"
+
         def iUv2str(code: float) -> tuple[str, str]:
             if code <= 2:
                 return "Baixo", "Não é necessário proteção"
@@ -45,10 +49,10 @@ class UV_risks:
 
     def __init__(self, api: IPMA_API) -> None:
         self.api = api
-        self.endpoint = f"https://api.ipma.pt/open-data/forecast/meteorology/uv/uv.json"
+        self.endpoint = "https://api.ipma.pt/open-data/forecast/meteorology/uv/uv.json"
 
     async def get(self, globalIdLocal: int | None = None) -> list[UV]:
-        """Retrive UV risk for globalIdLocal, or all."""
+        """Retrieve UV risk for one location, or all, ordered by date."""
         raw = await self.api.retrieve(url=self.endpoint)
 
         data = [
@@ -56,11 +60,11 @@ class UV_risks:
                 idPeriodo=int(d["idPeriodo"]),
                 intervaloHora=d["intervaloHora"],
                 data=datetime.datetime.strptime(d["data"], "%Y-%m-%d"),
-                globalIdLocal=d["globalIdLocal"],
-                iUv=float(d["iUv"]),
+                globalIdLocal=int(d["globalIdLocal"]),
+                iUv=number(d.get("iUv"), float),
             )
             for d in raw
-            if globalIdLocal in [None, d["globalIdLocal"]]
+            if globalIdLocal is None or int(d["globalIdLocal"]) == globalIdLocal
         ]
 
         return sorted(
