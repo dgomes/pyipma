@@ -138,28 +138,41 @@ Scheduled runs use the repository's default branch.
 
 ## Changelog
 
-### Unreleased
-
-* Normalize observation measurements, including missing wind speed (`-99`), while preserving zero and valid `99` values.
-* Handle missing observation fields and unavailable or unknown wind directions; keep station observations sorted chronologically.
-* Preserve zero and normalize missing numeric values in sea forecasts, UV risk, fire risk, and forecast class codes.
-* Return unavailable descriptions for missing UV/fire risk and normalize string location IDs in sea and UV forecasts.
-* Filter forecasts using UTC and validate forecast periods and fire-risk days explicitly.
-* Resolve auxiliary classes by ID and sort cached locations for each coordinate query.
-* Sort warnings chronologically and parse dates only for the requested area.
-
 ### 3.1.0 — 2026-11-21
+
+**Python 3.14, Richer Forecasts, and Typed APIs**
+
+Expand forecast data, improve parser reliability, and monitor compatibility
+against IPMA's live services.
 
 **Compatibility:** Python 3.14 or newer is now required. Users on Python 3.13
 or older should stay on pyipma 3.0.10 until they upgrade Python.
 
-* Require Python 3.14+, refresh runtime/build/development dependency minimums, and align CI and mypy with Python 3.14.
-* Expose precipitation intensity, UV index, wind speed class, and coastal fields on forecasts.
-* Normalize numeric forecast values, preserve zero, and treat missing values as `None`.
-* Expose fire-risk forecast, run, and update dates, and retain API owner/country metadata.
-* Ship inline type annotations and `py.typed`, with strict mypy checks for the library and consumer examples.
-* Expand live API parsing and field-coverage checks across mainland Portugal, Madeira, and the Azores.
-* Add the daily Live API compatibility workflow and downloadable JUnit reports.
+* **Richer forecasts:** expose precipitation intensity, UV index, wind speed
+  classes, and coastal conditions, including sea temperature, wave direction,
+  wave and swell heights, and swell and peak periods.
+* **More metadata:** expose fire-risk forecast, run, and update dates, and retain
+  API owner and country information in auxiliary parsers and sea forecasts.
+* **Typed APIs:** ship inline annotations and a `py.typed` marker, with strict
+  mypy checks for the library and consumer examples, including optional values.
+* **Consistent measurements:** normalize numeric strings and missing values
+  across observations, weather and sea forecasts, UV risk, and fire risk while
+  preserving zero. Fix the observation wind-speed `-99` sentinel check without
+  discarding valid `99` values.
+* **Unavailable data:** handle missing observation fields and unavailable or
+  unknown wind directions; provide unavailable descriptions for missing UV and
+  fire risk. Accept string location IDs in sea and UV forecasts.
+* **Reliable retrieval:** filter forecast windows using UTC, validate forecast
+  periods and fire-risk days explicitly, and avoid storing partial sea forecasts
+  when retrieval fails.
+* **Correct lookups and ordering:** resolve auxiliary classes by ID, preserve
+  the legacy wind-class `get(0)` alias, sort cached locations for each coordinate
+  query, and return warnings chronologically while parsing only the requested area.
+* **Updated dependencies:** require `aiohttp>=3.14.5` and `geopy>=2.5.0`, refresh
+  build and development dependency minimums, and align CI and mypy with Python 3.14.
+* **Stronger validation:** expand live parsing and field-coverage checks across
+  mainland Portugal, Madeira, and the Azores; add a daily Live API compatibility
+  workflow with downloadable JUnit reports and regression tests for parser edge cases.
 
 ### Releases
 
