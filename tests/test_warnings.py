@@ -80,3 +80,30 @@ async def test_warnings_raises_when_api_returns_none():
 
     with pytest.raises(IPMAException, match="Could not retrieve warnings"):
         await Warnings(EmptyAPI()).get("AVR")
+
+
+async def test_warnings_sort_and_ignore_unrelated_invalid_dates(static_api):
+    first = WARNINGS_PAYLOAD[0]
+    later = first | {"startTime": "2026-06-04T12:00:00"}
+    earlier_end = first | {"endTime": "2026-06-04T12:00:00"}
+    unrelated = WARNINGS_PAYLOAD[2] | {"startTime": "invalid"}
+    green = WARNINGS_PAYLOAD[1] | {"endTime": "invalid"}
+    parser = Warnings(static_api({
+        "https://api.ipma.pt/open-data/forecast/warnings/warnings_www.json":
+        [later, unrelated, first, green, earlier_end],
+    }))
+
+    warnings = await parser.get("AVR")
+
+    assert parser.data is warnings
+    assert [(w.startTime.hour, w.endTime.hour) for w in warnings] == [(6, 12), (6, 18), (12, 18)]
+    assert await parser.get("missing") == []
+
+
+async def test_warnings_reject_invalid_dates_in_selected_area(static_api):
+    parser = Warnings(static_api({
+        "https://api.ipma.pt/open-data/forecast/warnings/warnings_www.json":
+        [WARNINGS_PAYLOAD[0] | {"startTime": "invalid"}],
+    }))
+    with pytest.raises(ValueError):
+        await parser.get("AVR")
