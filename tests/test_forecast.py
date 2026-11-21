@@ -5,6 +5,62 @@ from pyipma.auxiliar import Forecast_Location, Weather_Type
 from pyipma.forecast import Forecast, Forecast_days
 
 
+@pytest.mark.parametrize(
+    ("value", "expected"),
+    [(0, 0), ("2", 2), (-99, None), ("-99.0", None), (None, None), ("", None)],
+)
+async def test_forecast_normalizes_class_codes_and_directions(static_api, value, expected):
+    row = {
+        "globalIdLocal": "1010500", "idPeriodo": "24", "idTipoTempo": "0",
+        "dataPrev": (datetime.datetime.now(datetime.timezone.utc) + datetime.timedelta(days=1)).strftime("%Y-%m-%dT%H:%M:%S"),
+        "dataUpdate": "2026-11-21T06:00:00", "idFfxVento": value,
+        "idIntensidadePrecipita": value, "ddVento": "-99", "dirOndulacao": "-99.0",
+    }
+    parser = Forecast_days(static_api({"http://api.ipma.pt/public-data/forecast/aggregate/1010500.json": [row]}))
+    parser.weather_type.data = [Weather_Type(0, "No information", "Sem informação")]
+    parser.forecast_locations.data = [Forecast_Location(1010500, "Aveiro", 1, 1, 5, "AVR", (40.6, -8.6))]
+
+    forecast, = await parser.get(1010500)
+
+    assert forecast.forecasted_hours == 24
+    assert forecast.wind_speed_class == expected
+    assert forecast.precipitation_intensity == expected
+    assert forecast.wind_direction == ""
+    assert forecast.wave_direction is None
+    assert forecast.temperature is None
+
+
+@pytest.mark.parametrize("period", [0, 2, 12])
+async def test_forecast_rejects_unsupported_periods(period):
+    with pytest.raises(ValueError, match="Forecast period"):
+        await Forecast_days(None).get(1010500, period)
+
+
+async def test_forecast_filters_dates_using_utc(static_api, monkeypatch):
+    real_datetime = datetime.datetime
+
+    class LocalClock(real_datetime):
+        @classmethod
+        def now(cls, tz=None):
+            # Simulate local time five hours ahead of UTC.
+            return cls(2026, 11, 21, 17) if tz is None else cls(2026, 11, 21, 12, tzinfo=tz)
+
+    monkeypatch.setattr("pyipma.forecast.datetime.datetime", LocalClock)
+    row = {
+        "globalIdLocal": 1010500, "idPeriodo": 1, "idTipoTempo": 0,
+        "dataPrev": "2026-11-21T12:00:00", "dataUpdate": "2026-11-21T06:00:00",
+    }
+    parser = Forecast_days(static_api({"http://api.ipma.pt/public-data/forecast/aggregate/1010500.json": [
+        row, row | {"dataPrev": "2026-11-21T10:00:00"},
+    ]}))
+    parser.weather_type.data = [Weather_Type(0, "No information", "Sem informação")]
+    parser.forecast_locations.data = [Forecast_Location(1010500, "Aveiro", 1, 1, 5, "AVR", (40.6, -8.6))]
+
+    forecast, = await parser.get(1010500, 1)
+
+    assert forecast.forecast_date == real_datetime(2026, 11, 21, 12, tzinfo=datetime.timezone.utc)
+
+
 @pytest.mark.parametrize("period", [1, 3, 24])
 async def test_forecast(live_api, period):
     forecasts = await Forecast_days(live_api).get(1010500, period)
