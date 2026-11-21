@@ -138,6 +138,16 @@ Scheduled runs use the repository's default branch.
 
 ## Changelog
 
+### Unreleased
+
+* Normalize observation measurements, including missing wind speed (`-99`), while preserving zero and valid `99` values.
+* Handle missing observation fields and unavailable or unknown wind directions; keep station observations sorted chronologically.
+* Preserve zero and normalize missing numeric values in sea forecasts, UV risk, fire risk, and forecast class codes.
+* Return unavailable descriptions for missing UV/fire risk and normalize string location IDs in sea and UV forecasts.
+* Filter forecasts using UTC and validate forecast periods and fire-risk days explicitly.
+* Resolve auxiliary classes by ID and sort cached locations for each coordinate query.
+* Sort warnings chronologically and parse dates only for the requested area.
+
 ### 3.1.0 — 2026-11-21
 
 **Compatibility:** Python 3.14 or newer is now required. Users on Python 3.13
