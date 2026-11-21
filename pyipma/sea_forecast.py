@@ -3,6 +3,7 @@ import datetime
 from dataclasses import dataclass
 
 from .api import IPMA_API
+from ._parsing import number, text
 from .auxiliar import Sea_Location, Sea_Locations
 
 
@@ -79,13 +80,13 @@ class SeaForecast:
 
 
 class SeaForecasts:
+    """Retrieve three daily sea forecasts ordered by forecast date."""
+
     def __init__(
         self,
         api: IPMA_API,
     ) -> None:
-        """
-        periodo: 1: 3days, 3: 5days, 24: 10days
-        """
+        """Initialize the sea forecast parser."""
         self.data: list[SeaForecast] | None = None
         self.api = api
         self.owner: str | None = None
@@ -94,7 +95,7 @@ class SeaForecasts:
         self.sea_locations = Sea_Locations(api)
 
     async def get(self, globalIdLocal: int) -> list[SeaForecast]:
-        self.data = []
+        forecasts: list[SeaForecast] = []
         for day in range(3):
             raw = await self.api.retrieve(
                 url=f"http://api.ipma.pt/open-data/forecast/oceanography/daily/hp-daily-sea-forecast-day{day}.json"
@@ -105,40 +106,28 @@ class SeaForecasts:
             dataUpdate = datetime.datetime.strptime(
                 raw["dataUpdate"], "%Y-%m-%dT%H:%M:%S"
             )
-            self.data += [
+            forecasts += [
                 SeaForecast(
-                    wavePeriodMin=float(r["wavePeriodMin"])
-                    if r.get("wavePeriodMin")
-                    else None,
+                    wavePeriodMin=number(r.get("wavePeriodMin"), float),
                     location=await self.sea_locations.find(int(r["globalIdLocal"])),
-                    totalSeaMax=float(r["totalSeaMax"])
-                    if r.get("totalSeaMax")
-                    else None,
-                    waveHighMax=float(r["waveHighMax"])
-                    if r.get("waveHighMax")
-                    else None,
-                    waveHighMin=float(r["waveHighMin"])
-                    if r.get("waveHighMin")
-                    else None,
-                    wavePeriodMax=float(r["wavePeriodMax"])
-                    if r.get("wavePeriodMax")
-                    else None,
-                    totalSeaMin=float(r["totalSeaMin"])
-                    if r.get("totalSeaMin")
-                    else None,
-                    sstMax=float(r["sstMax"]) if r.get("sstMax") else None,
-                    predWaveDir=r["predWaveDir"],
-                    sstMin=float(r["sstMin"]) if r.get("sstMin") else None,
+                    totalSeaMax=number(r.get("totalSeaMax"), float),
+                    waveHighMax=number(r.get("waveHighMax"), float),
+                    waveHighMin=number(r.get("waveHighMin"), float),
+                    wavePeriodMax=number(r.get("wavePeriodMax"), float),
+                    totalSeaMin=number(r.get("totalSeaMin"), float),
+                    sstMax=number(r.get("sstMax"), float),
+                    predWaveDir=text(r.get("predWaveDir")) or "",
+                    sstMin=number(r.get("sstMin"), float),
                     coordinates=(float(r["longitude"]), float(r["latitude"])),
                     forecastDate=forecast_date,
                     dataUpdate=dataUpdate,
                 )
                 for r in raw["data"]
-                if r["globalIdLocal"] == globalIdLocal
+                if int(r["globalIdLocal"]) == globalIdLocal
             ]
 
         self.data = sorted(
-            self.data,
+            forecasts,
             key=lambda d: d.forecastDate,
         )
 
