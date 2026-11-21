@@ -2,7 +2,7 @@
 
 ## Project and layout
 
-pyipma is an asynchronous client for IPMA weather services. Python 3.10+ is
+pyipma is an asynchronous client for IPMA weather services. Python 3.14+ is
 required; runtime and development dependencies are defined in `pyproject.toml`.
 
 - `pyipma/api.py`: HTTP requests, timeouts, response decoding, and `IPMAException`.
@@ -16,10 +16,11 @@ required; runtime and development dependencies are defined in `pyproject.toml`.
 
 ## Setup and validation
 
-Use the existing `venv` if available, or create it and install development dependencies:
+Use the existing `venv` if it runs Python 3.14+, or create a virtual environment
+with a supported interpreter and install development dependencies:
 
 ```sh
-python3 -m venv venv
+python3.14 -m venv venv
 venv/bin/python -m pip install -e ".[dev]"
 ```
 

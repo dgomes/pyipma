@@ -10,8 +10,8 @@ Locations and nearby stations are selected from geographic coordinates.
 
 ## Installation
 
-Requires Python 3.10 or newer. Runtime dependencies are `aiohttp>=3.14` and
-`geopy`, installed automatically with the package:
+Requires Python 3.14 or newer. Runtime dependencies are `aiohttp>=3.14.5` and
+`geopy>=2.5.0`, installed automatically with the package:
 
 ```sh
 python -m pip install pyipma
@@ -117,7 +117,7 @@ in CI alongside the live API tests.
 Install the test dependencies in a virtual environment, then run pytest:
 
 ```sh
-python3 -m venv venv
+python3.14 -m venv venv
 venv/bin/python -m pip install -e ".[test]"
 venv/bin/python -m pytest
 ```
@@ -138,8 +138,12 @@ Scheduled runs use the repository's default branch.
 
 ## Changelog
 
-### Unreleased
+### 3.1.0 — 2026-11-21
 
+**Compatibility:** Python 3.14 or newer is now required. Users on Python 3.13
+or older should stay on pyipma 3.0.10 until they upgrade Python.
+
+* Require Python 3.14+, refresh runtime/build/development dependency minimums, and align CI and mypy with Python 3.14.
 * Expose precipitation intensity, UV index, wind speed class, and coastal fields on forecasts.
 * Normalize numeric forecast values, preserve zero, and treat missing values as `None`.
 * Expose fire-risk forecast, run, and update dates, and retain API owner/country metadata.
