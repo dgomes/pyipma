@@ -41,15 +41,21 @@ class AuxiliarParser(Generic[T]):
 
 class TypeParser(AuxiliarParser[TypeT]):
     async def get_type(self, id: int) -> TypeT:
-        if not self.data:
+        if self.data is None:
             raw = await self.api.retrieve(url=self.endpoint)
+            if raw is None:
+                raise IPMAException(f"Could not retrieve classes from {self.endpoint}")
             self.owner = raw.get("owner")
             self.country = raw.get("country")
             self.data = sorted(self._data_to_obj_list(raw), key=lambda d: abs(d.id))
 
-        if id >= 0:
-            return self.data[id]
-        return self.data[-1]  # -99 is the last
+        for item in self.data:
+            if item.id == id:
+                return item
+        # Preserve the historical get(0) alias for classes numbered from 1.
+        if id == 0 and self.data and self.data[0].id == 1:
+            return self.data[0]
+        raise IPMAException(f"Unknown class ID {id} from {self.endpoint}")
 
     async def get(self, id: int) -> TypeT:
         return await self.get_type(id)
@@ -57,7 +63,7 @@ class TypeParser(AuxiliarParser[TypeT]):
 
 class LocationParser(AuxiliarParser[LocationT]):
     async def get_location(self, lon: float | None, lat: float | None) -> list[LocationT]:
-        if not self.data:
+        if self.data is None:
             raw = await self.api.retrieve(url=self.endpoint)
             if raw is None:
                 raise IPMAException(f"Could not retrieve location for {lon}, {lat}")
@@ -65,11 +71,11 @@ class LocationParser(AuxiliarParser[LocationT]):
                 self.owner = raw.get("owner")
                 self.country = raw.get("country")
             self.data = self._data_to_obj_list(raw)
-            if lon is not None and lat is not None:
-                self.data = sorted(
-                    self.data,
-                    key=lambda d: distance.distance((lon, lat), d.coordinates).km,
-                )
+        if lon is not None and lat is not None:
+            return sorted(
+                self.data,
+                key=lambda d: distance.distance((lon, lat), d.coordinates).km,
+            )
         return self.data
 
     async def get(self, lon: float | None, lat: float | None) -> list[LocationT]:
@@ -146,7 +152,10 @@ class Forecast_Locations(LocationParser[Forecast_Location]):
     async def find(self, globalIdLocal: int) -> Forecast_Location:
         if self.data is None:
             self.data = await self.get(None, None)
-        return [l for l in self.data if l.globalIdLocal == globalIdLocal][0]
+        for location in self.data:
+            if location.globalIdLocal == globalIdLocal:
+                return location
+        raise IPMAException(f"Unknown forecast location {globalIdLocal}")
 
 
 @dataclass
@@ -183,7 +192,10 @@ class Sea_Locations(LocationParser[Sea_Location]):
     async def find(self, globalIdLocal: int) -> Sea_Location:
         if self.data is None:
             self.data = await self.get(None, None)
-        return [l for l in self.data if l.globalIdLocal == globalIdLocal][0]
+        for location in self.data:
+            if location.globalIdLocal == globalIdLocal:
+                return location
+        raise IPMAException(f"Unknown sea location {globalIdLocal}")
 
 
 @dataclass
@@ -235,7 +247,7 @@ class Weather_Types(TypeParser[Weather_Type]):
     def _data_to_obj_list(self, raw: Any) -> list[Weather_Type]:
         return [
             Weather_Type(
-                id=w["idWeatherType"],
+                id=int(w["idWeatherType"]),
                 en=w["descWeatherTypeEN"],
                 pt=w["descWeatherTypePT"],
             )
