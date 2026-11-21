@@ -108,7 +108,7 @@ class Observations:
                     r["radiacao"] if r["radiacao"] != -99 else None,
                     r["idDireccVento"],
                     r["precAcumulada"] if r["precAcumulada"] != -99 else None,
-                    r["intensidadeVento"] if r["intensidadeVento"] != 99 else None,
+                    r["intensidadeVento"] if r["intensidadeVento"] != -99 else None,
                     r["humidade"] if r["humidade"] != -99 else None,
                     r["pressao"] if r["pressao"] != -99 else None,
                     datetime.datetime.strptime(timestamp, "%Y-%m-%dT%H:%M"),
