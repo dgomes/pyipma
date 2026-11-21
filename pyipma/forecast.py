@@ -8,6 +8,7 @@ from enum import Enum
 from typing import Any, Optional, TypeVar
 
 from .api import IPMA_API
+from ._parsing import number, text
 from .auxiliar import Forecast_Location, Forecast_Locations, Weather_Type, Weather_Types
 
 Number = TypeVar("Number", int, float)
@@ -198,9 +199,13 @@ class Forecast_days:
         """Retrieve forecasts from IPMA.
         periodo: 1: 3days, 3: 5days, 24: 10days
         """
-        assert period in [1, 3, 24], "Forecast period must be 1h, 3h or 24h"
+        if period not in (1, 3, 24):
+            raise ValueError("Forecast period must be 1h, 3h or 24h")
         raw = await self.api.retrieve(
             url=f"http://api.ipma.pt/public-data/forecast/aggregate/{globalIdLocal}.json"
+        )
+        cutoff = datetime.datetime.now(datetime.timezone.utc).replace(tzinfo=None) - (
+            timedelta(days=1) if period == 24 else timedelta(hours=1)
         )
         self.data = sorted(
             [
@@ -208,7 +213,7 @@ class Forecast_days:
                     tMed=self._number(r.get("tMed"), float),
                     tMin=self._number(r.get("tMin"), float),
                     ffVento=self._number(r.get("ffVento"), float),
-                    idFfxVento=r.get("idFfxVento"),
+                    idFfxVento=self._number(r.get("idFfxVento"), int),
                     dataUpdate=datetime.datetime.strptime(
                         r["dataUpdate"], "%Y-%m-%dT%H:%M:%S"
                     ),
@@ -221,17 +226,16 @@ class Forecast_days:
                         int(r["globalIdLocal"])
                     ),
                     probabilidadePrecipita=self._number(r.get("probabilidadePrecipita"), float),
-                    idPeriodo=r["idPeriodo"],
+                    idPeriodo=int(r["idPeriodo"]),
                     dataPrev=datetime.datetime.strptime(
                         r["dataPrev"], "%Y-%m-%dT%H:%M:%S"
                     ).replace(tzinfo=datetime.timezone.utc),
-                    ddVento=r["ddVento"],
+                    ddVento=text(r.get("ddVento")) or "",
                     utci=self._number(r.get("utci"), float),
                     idIntensidadePrecipita=self._number(
                         r.get("idIntensidadePrecipita"), int
                     ),
-                    dirOndulacao=r.get("dirOndulacao")
-                    if r.get("dirOndulacao") not in ("", -99, "-99") else None,
+                    dirOndulacao=text(r.get("dirOndulacao")),
                     marTotal=self._number(r.get("marTotal"), float),
                     ondulacao=self._number(r.get("ondulacao"), float),
                     periodOndulacao=self._number(r.get("periodOndulacao"), float),
@@ -239,19 +243,8 @@ class Forecast_days:
                     tempAguaMar=self._number(r.get("tempAguaMar"), float),
                 )
                 for r in raw
-                if r["idPeriodo"] == period
-                and (
-                    (
-                        datetime.datetime.strptime(r["dataPrev"], "%Y-%m-%dT%H:%M:%S")
-                        > (datetime.datetime.now() - timedelta(hours=1))
-                        and period in (1, 3)
-                    )
-                    or (
-                        datetime.datetime.strptime(r["dataPrev"], "%Y-%m-%dT%H:%M:%S")
-                        > (datetime.datetime.now() - timedelta(days=1))
-                        and period == 24
-                    )
-                )
+                if int(r["idPeriodo"]) == period
+                and datetime.datetime.strptime(r["dataPrev"], "%Y-%m-%dT%H:%M:%S") > cutoff
             ],
             key=lambda d: d.dataPrev,
         )
@@ -261,7 +254,4 @@ class Forecast_days:
     @staticmethod
     def _number(value: Any, number_type: type[Number]) -> Number | None:
         """Convert API numbers, preserving zero and treating -99 as missing."""
-        if value is None or value == "":
-            return None
-        value = number_type(value)
-        return None if value == -99 else value
+        return number(value, number_type)
