@@ -1,13 +1,9 @@
 """Representation of a Weather Observation from IPMA."""
 import datetime
-import logging
 from dataclasses import dataclass
 
-from typing import Optional
-
 from .api import IPMA_API
-
-LOGGER = logging.getLogger(__name__)
+from ._parsing import number
 
 WIND_DIRECTION_ID = {
     0: "",
@@ -25,56 +21,58 @@ WIND_DIRECTION_ID = {
 
 @dataclass
 class Observation:
-    """Represents a Meteo Station (district)."""
+    """Hourly weather measurements from an IPMA station."""
 
-    intensidadeVentoKM: Optional[float]
-    temperatura: Optional[float]
-    radiacao: Optional[float]
-    idDireccVento: int
-    precAcumulada: Optional[float]
-    intensidadeVento: Optional[float]
-    humidade: Optional[float]
-    pressao: Optional[float]
+    intensidadeVentoKM: float | None
+    temperatura: float | None
+    radiacao: float | None
+    idDireccVento: int | None
+    precAcumulada: float | None
+    intensidadeVento: float | None
+    humidade: float | None
+    pressao: float | None
     timestamp: datetime.datetime
     idEstacao: int
 
     @property
-    def temperature(self) -> Optional[float]:
+    def temperature(self) -> float | None:
         """Temperatura do ar registada a 1.5 metros de altura, média da hora (ºC)."""
         return self.temperatura
 
     @property
-    def radiation(self) -> Optional[float]:
+    def radiation(self) -> float | None:
         """Radiação solar (kJ/m2)."""
         return self.radiacao
 
     @property
-    def wind_intensity_km(self) -> Optional[float]:
+    def wind_intensity_km(self) -> float | None:
         """Intensidade do vento registada a 10 metros de altura (km/h)."""
         return self.intensidadeVentoKM
 
     @property
-    def wind_intensity(self) -> Optional[float]:
+    def wind_intensity(self) -> float | None:
         """Intensidade do vento registada a 10 metros de altura (m/s)."""
         return self.intensidadeVento
 
     @property
     def wind_direction(self) -> str:
-        """Rumo predominante do vento registado a 10 metros de altura."""
-        return WIND_DIRECTION_ID[self.idDireccVento]
+        """Predominant wind direction, or an empty string when unavailable."""
+        if self.idDireccVento is None:
+            return ""
+        return WIND_DIRECTION_ID.get(self.idDireccVento, "")
 
     @property
-    def accumulated_precipitation(self) -> Optional[float]:
+    def accumulated_precipitation(self) -> float | None:
         """Precipitação registada a 1.5 metros de altura, valor acumulado da hora (mm)."""
         return self.precAcumulada
 
     @property
-    def humidity(self) -> Optional[float]:
+    def humidity(self) -> float | None:
         """Humidade relativa do ar registada a 1.5 metros de altura, média da hora (%)."""
         return self.humidade
 
     @property
-    def pressure(self) -> Optional[float]:
+    def pressure(self) -> float | None:
         """Pressão atmosférica, reduzida ao nível médio do mar (NMM), média da hora (hPa)."""
         return self.pressao
 
@@ -84,7 +82,7 @@ class Observation:
 
 
 class Observations:
-    """Represents a Meteo Station endpoint that retrieves Observation objects."""
+    """Retrieve station observations ordered from oldest to newest."""
 
     def __init__(
         self,
@@ -94,7 +92,7 @@ class Observations:
         self.api = api
 
     async def get(self, idEstacao: int) -> list[Observation]:
-        """Retrieve observations from IPMA."""
+        """Retrieve non-null observations for one station; missing stations return []."""
         raw = await self.api.retrieve(
             url="https://api.ipma.pt/open-data/observation/meteorology/stations/observations.json"
         )
@@ -103,22 +101,28 @@ class Observations:
         self.data = sorted(
             [
                 Observation(
-                    r["intensidadeVentoKM"] if r["intensidadeVentoKM"] != -99 else None,
-                    r["temperatura"] if r["temperatura"] != -99 else None,
-                    r["radiacao"] if r["radiacao"] != -99 else None,
-                    r["idDireccVento"],
-                    r["precAcumulada"] if r["precAcumulada"] != -99 else None,
-                    r["intensidadeVento"] if r["intensidadeVento"] != 99 else None,
-                    r["humidade"] if r["humidade"] != -99 else None,
-                    r["pressao"] if r["pressao"] != -99 else None,
-                    datetime.datetime.strptime(timestamp, "%Y-%m-%dT%H:%M"),
-                    int(estacao),
+                    intensidadeVentoKM=self._number(r.get("intensidadeVentoKM")),
+                    temperatura=self._number(r.get("temperatura")),
+                    radiacao=self._number(r.get("radiacao")),
+                    idDireccVento=int(direction)
+                    if (direction := self._number(r.get("idDireccVento"))) is not None
+                    else None,
+                    precAcumulada=self._number(r.get("precAcumulada")),
+                    intensidadeVento=self._number(r.get("intensidadeVento")),
+                    humidade=self._number(r.get("humidade")),
+                    pressao=self._number(r.get("pressao")),
+                    timestamp=datetime.datetime.strptime(timestamp, "%Y-%m-%dT%H:%M"),
+                    idEstacao=idEstacao,
                 )
-                for timestamp in raw
-                for estacao, r in raw[timestamp].items()
-                if r is not None and estacao == station_id
+                for timestamp, stations in raw.items()
+                if (r := stations.get(station_id)) is not None
             ],
             key=lambda d: d.timestamp,
         )
 
         return self.data
+
+    @staticmethod
+    def _number(value: float | str | None) -> float | None:
+        """Normalize numeric measurements, preserving zero and treating -99 as missing."""
+        return number(value, float)
