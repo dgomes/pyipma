@@ -1,6 +1,8 @@
-import json
+import aiohttp
 
 import pytest
+
+from pyipma.api import IPMA_API
 
 
 class StaticAPI:
@@ -17,12 +19,10 @@ class StaticAPI:
 
 
 @pytest.fixture
-def load_fixture():
-    def _load_fixture(path):
-        with open(path) as fixture:
-            return json.load(fixture)
-
-    return _load_fixture
+async def live_api():
+    """Use IPMA's live service so upstream incompatibilities fail tests."""
+    async with aiohttp.ClientSession() as session:
+        yield IPMA_API(session)
 
 
 @pytest.fixture

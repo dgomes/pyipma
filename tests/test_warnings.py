@@ -34,6 +34,20 @@ WARNINGS_PAYLOAD = [
 ]
 
 
+async def test_live_warnings(live_api):
+    warnings = await Warnings(live_api).get("AVR")
+
+    assert isinstance(warnings, list)
+    for warning in warnings:
+        assert isinstance(warning, Warning)
+        assert warning.idAreaAviso == "AVR"
+        assert warning.awarenessLevelID in {"yellow", "orange", "red"}
+        assert isinstance(warning.text, str)
+        assert isinstance(warning.awarenessTypeName, str)
+        assert isinstance(warning.startTime, datetime.datetime)
+        assert isinstance(warning.endTime, datetime.datetime)
+
+
 async def test_warnings_filters_green_and_area(static_api):
     api = static_api(
         {

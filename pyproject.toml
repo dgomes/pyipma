@@ -33,17 +33,13 @@ Homepage = "https://github.com/dgomes/pyipma"
 
 [project.optional-dependencies]
 test = [
-    "aioresponses>=0.7.8",
-    "freezegun",
     "pytest",
     "pytest-asyncio",
     "pytest-cov",
 ]
 dev = [
-    "aioresponses>=0.7.8",
     "build",
     "flake8",
-    "freezegun",
     "pytest",
     "pytest-asyncio",
     "pytest-cov",

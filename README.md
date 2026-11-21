@@ -39,6 +39,19 @@ async def main():
 asyncio.get_event_loop().run_until_complete(main())
 ```
 
+## Running tests
+
+Install the test dependencies in a virtual environment, then run pytest:
+
+```sh
+python3 -m venv venv
+venv/bin/python -m pip install -e ".[test]"
+venv/bin/python -m pytest
+```
+
+Tests call IPMA's live API and require internet access. Endpoint failures, response
+schema changes, and parsing errors fail the suite so upstream changes are visible.
+
 ## Changelog
 
 * 3.0.10 - Update aiohttp support and response handling

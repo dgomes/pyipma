@@ -3,19 +3,16 @@ import pytest
 from pyipma.rcm import RCM_day, RCM
 
 
-@pytest.mark.asyncio
-async def test_rcm(static_api, load_fixture):
-    api = static_api(
-        {
-            "http://api.ipma.pt/open-data/forecast/meteorology/rcm/rcm-d0.json": load_fixture(
-                "fixtures/rcm-d0.json"
-            )
-        }
-    )
-    rcms = RCM_day(api)
+@pytest.mark.parametrize("day", [0, 1])
+async def test_rcm(live_api, day):
+    risks = await RCM_day(live_api, day).get(40.6405, -8.6538)
 
-    d = await rcms.get(40.6405, -8.6538)
-
-    assert len(d) == 278
-    assert d[0] == RCM(dico="0105", rcm=2, coordinates=(40.6413, -8.6535))
-    assert str(d[0]) == "Risco moderado para Aveiro"
+    assert risks
+    for risk in risks:
+        assert isinstance(risk, RCM)
+        assert isinstance(risk.dico, str)
+        assert risk.rcm in range(1, 6)
+        assert isinstance(risk.coordinates, tuple)
+        assert len(risk.coordinates) == 2
+        assert all(isinstance(value, float) for value in risk.coordinates)
+        assert str(risk)

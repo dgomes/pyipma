@@ -1,28 +1,28 @@
-from pyipma.observation import Observations
+from datetime import datetime
+
+from pyipma.observation import Observation, Observations
 
 
-async def test_observations(static_api, load_fixture):
-    api = static_api(
-        {
-            "https://api.ipma.pt/open-data/observation/meteorology/stations/observations.json": load_fixture(
-                "fixtures/observations.json"
-            )
-        }
+async def test_observations(live_api):
+    observations = await Observations(live_api).get(1210702)
+
+    assert observations
+    assert [item.timestamp for item in observations] == sorted(
+        item.timestamp for item in observations
     )
-    obs = Observations(api)
-
-    aveiro_obs = await obs.get(1210702)
-
-    assert len(aveiro_obs) == 24  # hourly observations for the last day
-
-    assert aveiro_obs[0].idEstacao == 1210702
-
-    assert aveiro_obs[0].temperature == 17.7
-    assert aveiro_obs[0].radiation == 0.0
-    assert aveiro_obs[0].wind_intensity_km == 10.8
-    assert aveiro_obs[0].wind_intensity == 3.0
-    assert aveiro_obs[0].wind_direction == "N"
-    assert aveiro_obs[0].accumulated_precipitation == 0.0
-    assert aveiro_obs[0].humidity == 88.0
-    assert aveiro_obs[0].pressure == 1018.0
-    assert str(aveiro_obs[0]).startswith("Weather in 1210702")
+    for observation in observations:
+        assert isinstance(observation, Observation)
+        assert observation.idEstacao == 1210702
+        assert isinstance(observation.timestamp, datetime)
+        for value in (
+            observation.temperature,
+            observation.radiation,
+            observation.wind_intensity_km,
+            observation.wind_intensity,
+            observation.accumulated_precipitation,
+            observation.humidity,
+            observation.pressure,
+        ):
+            assert value is None or isinstance(value, (int, float))
+        assert isinstance(observation.wind_direction, str)
+        assert str(observation).startswith("Weather in 1210702")

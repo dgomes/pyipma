@@ -1,37 +1,26 @@
 import datetime
 
-from freezegun import freeze_time
-
 from pyipma.auxiliar import Forecast_Location, Weather_Type
 from pyipma.forecast import Forecast, Forecast_days
 
 
-@freeze_time("2022-07-28")
-async def test_forecast(static_api, load_fixture):
-    api = static_api(
-        {
-            "http://api.ipma.pt/public-data/forecast/aggregate/1010500.json": load_fixture(
-                "fixtures/1010500.json"
-            ),
-            "https://api.ipma.pt/open-data/weather-type-classe.json": load_fixture(
-                "fixtures/weather-type-classe.json"
-            ),
-            "http://api.ipma.pt/public-data/forecast/locations.json": load_fixture(
-                "fixtures/locations.json"
-            ),
-        }
+async def test_forecast(live_api):
+    forecasts = await Forecast_days(live_api).get(1010500, 24)
+
+    assert forecasts
+    assert [item.forecast_date for item in forecasts] == sorted(
+        item.forecast_date for item in forecasts
     )
-    forecast_10days = Forecast_days(api)
-
-    aveiro_forecast = await forecast_10days.get(1010500, 24)
-
-    assert len(aveiro_forecast) == 10  # mocked days forecasted
-
-    assert aveiro_forecast[0].dataPrev == datetime.datetime(
-        2022, 7, 28, 0, 0, tzinfo=datetime.timezone.utc
-    )
-    assert aveiro_forecast[0].location.globalIdLocal == 1010500
-    assert aveiro_forecast[1].idTipoTempo.desc() == "Céu pouco nublado"
+    for forecast in forecasts:
+        assert isinstance(forecast, Forecast)
+        assert forecast.location.globalIdLocal == 1010500
+        assert forecast.forecasted_hours == 24
+        assert isinstance(forecast.forecast_date, datetime.datetime)
+        assert forecast.forecast_date.tzinfo == datetime.timezone.utc
+        assert isinstance(forecast.update_date, datetime.datetime)
+        assert isinstance(forecast.weather_type, Weather_Type)
+        assert isinstance(forecast.weather_type_description, str)
+        assert isinstance(forecast.temperature, float)
 
 
 def test_forecast_properties_and_string_without_humidity():
