@@ -1,6 +1,7 @@
 import aiohttp
 import pytest
 
+from pyipma import IPMAException
 from pyipma.api import IPMA_API
 from pyipma.auxiliar import (
     District,
@@ -18,6 +19,69 @@ from pyipma.auxiliar import (
     Wind_Speed_Daily_Type,
     Wind_Speed_Daily_Types,
 )
+
+
+async def test_class_lookup_uses_ids_instead_of_positions(static_api):
+    rows = [{"classPrecInt": str(code), "descClassPrecIntEN": str(code), "descClassPrecIntPT": str(code)}
+            for code in (3, -99, 0)]
+    api = static_api({"https://api.ipma.pt/open-data/precipitation-classe.json": {"data": rows}})
+    parser = Precipitation_Classes(api)
+
+    assert (await parser.get(3)).id == 3
+    assert (await parser.get(0)).id == 0
+    assert (await parser.get(-99)).id == -99
+    with pytest.raises(IPMAException, match="Unknown class ID 1"):
+        await parser.get(1)
+
+
+async def test_wind_classes_keep_legacy_zero_alias(static_api):
+    rows = [{"classWindSpeed": str(code), "descClassWindSpeedDailyEN": str(code),
+             "descClassWindSpeedDailyPT": str(code)} for code in (2, -99, 1)]
+    parser = Wind_Speed_Daily_Types(static_api({
+        "https://api.ipma.pt/open-data/wind-speed-daily-classe.json": {"data": rows},
+    }))
+    assert (await parser.get(0)).id == 1
+    assert (await parser.get(1)).id == 1
+    assert (await parser.get(2)).id == 2
+    assert (await parser.get(-99)).id == -99
+
+
+async def test_location_cache_is_sorted_for_each_coordinate_pair(static_api):
+    rows = [{"globalIdLocal": code, "local": str(code), "idRegiao": 1,
+             "idDistrito": 1, "idConcelho": 1, "idAreaAviso": "AVR",
+             "latitude": latitude, "longitude": -8.0}
+            for code, latitude in ((1, 40.0), (2, 42.0))]
+    endpoint = "https://api.ipma.pt/open-data/distrits-islands.json"
+    api = static_api({endpoint: {"data": rows}})
+    parser = Districts(api)
+
+    assert (await parser.get(40.0, -8.0))[0].globalIdLocal == 1
+    api.responses[endpoint] = AssertionError("should use cached response")
+    assert (await parser.get(42.0, -8.0))[0].globalIdLocal == 2
+    assert [item.globalIdLocal for item in await parser.get(None, None)] == [1, 2]
+
+
+async def test_empty_location_response_is_cached(static_api):
+    endpoint = "https://api.ipma.pt/open-data/distrits-islands.json"
+    api = static_api({endpoint: {"data": []}})
+    parser = Districts(api)
+    assert await parser.get(None, None) == []
+    api.responses[endpoint] = AssertionError("should use cached empty response")
+    assert await parser.get(None, None) == []
+
+
+@pytest.mark.parametrize("parser_type", [Forecast_Locations, Sea_Locations])
+async def test_unknown_locations_raise_api_exception(static_api, parser_type):
+    parser = parser_type(static_api({}))
+    parser.data = []
+    with pytest.raises(IPMAException, match="Unknown .* location 999"):
+        await parser.find(999)
+
+
+async def test_missing_class_response_raises_api_exception(static_api):
+    parser = Weather_Types(static_api({"https://api.ipma.pt/open-data/weather-type-classe.json": None}))
+    with pytest.raises(IPMAException, match="Could not retrieve classes"):
+        await parser.get(0)
 
 
 def assert_location_properties(location):
