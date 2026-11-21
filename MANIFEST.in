@@ -1,2 +1,2 @@
-include pytest.ini tests/conftest.py
+include CHANGELOG.md pytest.ini tests/conftest.py
 recursive-include tests/typing *.py
