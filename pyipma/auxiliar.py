@@ -1,5 +1,8 @@
+from __future__ import annotations
+
 import logging
 from dataclasses import dataclass
+from typing import Any, Generic, Protocol, TypeVar
 
 from geopy import distance
 
@@ -8,49 +11,69 @@ from pyipma import IPMAException
 
 LOGGER = logging.getLogger(__name__)  # pylint: disable=invalid-name
 
-class AuxiliarParser:
-    def __init__(self, api: IPMA_API, type="location"):
-        _TYPES = {"location": self.get_location, "type": self.get_type}
-        self.data = None
-        self.owner = None
-        self.country = None
-        self.api = api
-        self.get = _TYPES[type]
 
-    async def get_type(self, id):
+class Located(Protocol):
+    @property
+    def coordinates(self) -> tuple[float, float]: ...
+
+
+class Identified(Protocol):
+    @property
+    def id(self) -> int: ...
+
+
+T = TypeVar("T")
+LocationT = TypeVar("LocationT", bound=Located)
+TypeT = TypeVar("TypeT", bound=Identified)
+
+
+class AuxiliarParser(Generic[T]):
+    def __init__(self, api: IPMA_API) -> None:
+        self.data: list[T] | None = None
+        self.owner: str | None = None
+        self.country: str | None = None
+        self.api = api
+        self.endpoint: str
+
+    def _data_to_obj_list(self, raw: Any) -> list[T]:
+        raise NotImplementedError
+
+
+class TypeParser(AuxiliarParser[TypeT]):
+    async def get_type(self, id: int) -> TypeT:
         if not self.data:
             raw = await self.api.retrieve(url=self.endpoint)
-
             self.owner = raw.get("owner")
             self.country = raw.get("country")
-
             self.data = sorted(self._data_to_obj_list(raw), key=lambda d: abs(d.id))
 
         if id >= 0:
             return self.data[id]
-        else:
-            return self.data[-1]  # -99 is the last
+        return self.data[-1]  # -99 is the last
 
-    async def get_location(self, lon, lat):
+    async def get(self, id: int) -> TypeT:
+        return await self.get_type(id)
+
+
+class LocationParser(AuxiliarParser[LocationT]):
+    async def get_location(self, lon: float | None, lat: float | None) -> list[LocationT]:
         if not self.data:
             raw = await self.api.retrieve(url=self.endpoint)
-
             if raw is None:
                 raise IPMAException(f"Could not retrieve location for {lon}, {lat}")
-
             if isinstance(raw, dict):
                 self.owner = raw.get("owner")
                 self.country = raw.get("country")
-
             self.data = self._data_to_obj_list(raw)
-
-            if (lon, lat) != (None, None):
+            if lon is not None and lat is not None:
                 self.data = sorted(
                     self.data,
                     key=lambda d: distance.distance((lon, lat), d.coordinates).km,
                 )
-
         return self.data
+
+    async def get(self, lon: float | None, lat: float | None) -> list[LocationT]:
+        return await self.get_location(lon, lat)
 
 
 @dataclass
@@ -63,16 +86,16 @@ class District:
     idAreaAviso: str
     coordinates: tuple[float, float]
 
-    def __str__(self):
+    def __str__(self) -> str:
         return f"{self.local}({self.globalIdLocal})"
 
 
-class Districts(AuxiliarParser):
-    def __init__(self, api: IPMA_API):
+class Districts(LocationParser[District]):
+    def __init__(self, api: IPMA_API) -> None:
         super().__init__(api)
         self.endpoint = "https://api.ipma.pt/open-data/distrits-islands.json"
 
-    def _data_to_obj_list(self, raw):
+    def _data_to_obj_list(self, raw: Any) -> list[District]:
         return [
             District(
                 d["globalIdLocal"],
@@ -97,16 +120,16 @@ class Forecast_Location:
     idAreaAviso: str
     coordinates: tuple[float, float]
 
-    def __str__(self):
+    def __str__(self) -> str:
         return f"{self.local}({self.globalIdLocal})"
 
 
-class Forecast_Locations(AuxiliarParser):
-    def __init__(self, api: IPMA_API):
+class Forecast_Locations(LocationParser[Forecast_Location]):
+    def __init__(self, api: IPMA_API) -> None:
         super().__init__(api)
         self.endpoint = "http://api.ipma.pt/public-data/forecast/locations.json"
 
-    def _data_to_obj_list(self, raw):
+    def _data_to_obj_list(self, raw: Any) -> list[Forecast_Location]:
         return [
             Forecast_Location(
                 int(d["globalIdLocal"]),
@@ -120,9 +143,9 @@ class Forecast_Locations(AuxiliarParser):
             for d in raw
         ]
 
-    async def find(self, globalIdLocal):
+    async def find(self, globalIdLocal: int) -> Forecast_Location:
         if self.data is None:
-            await self.get(None, None)
+            self.data = await self.get(None, None)
         return [l for l in self.data if l.globalIdLocal == globalIdLocal][0]
 
 
@@ -135,16 +158,16 @@ class Sea_Location:
     idLocal: int
     coordinates: tuple[float, float]
 
-    def __str__(self):
+    def __str__(self) -> str:
         return f"{self.local}({self.globalIdLocal})"
 
 
-class Sea_Locations(AuxiliarParser):
-    def __init__(self, api: IPMA_API):
+class Sea_Locations(LocationParser[Sea_Location]):
+    def __init__(self, api: IPMA_API) -> None:
         super().__init__(api)
         self.endpoint = "https://api.ipma.pt/open-data/sea-locations.json"
 
-    def _data_to_obj_list(self, raw):
+    def _data_to_obj_list(self, raw: Any) -> list[Sea_Location]:
         return [
             Sea_Location(
                 d["globalIdLocal"],
@@ -157,9 +180,9 @@ class Sea_Locations(AuxiliarParser):
             for d in raw
         ]
 
-    async def find(self, globalIdLocal):
+    async def find(self, globalIdLocal: int) -> Sea_Location:
         if self.data is None:
-            await self.get(None, None)
+            self.data = await self.get(None, None)
         return [l for l in self.data if l.globalIdLocal == globalIdLocal][0]
 
 
@@ -169,16 +192,16 @@ class Station:
     localEstacao: str
     coordinates: tuple[float, float]
 
-    def __str__(self):
+    def __str__(self) -> str:
         return f"{self.localEstacao}({self.idEstacao})"
 
 
-class Stations(AuxiliarParser):
-    def __init__(self, api: IPMA_API):
+class Stations(LocationParser[Station]):
+    def __init__(self, api: IPMA_API) -> None:
         super().__init__(api)
         self.endpoint = "https://api.ipma.pt/open-data/observation/meteorology/stations/stations.json"
 
-    def _data_to_obj_list(self, raw):
+    def _data_to_obj_list(self, raw: Any) -> list[Station]:
         return [
             Station(
                 s["properties"]["idEstacao"],
@@ -195,22 +218,21 @@ class Weather_Type:
     en: str
     pt: str
 
-    def desc(self, lang="pt"):
+    def desc(self, lang: str = "pt") -> str:
         if lang == "pt":
             return self.pt
         return self.en
 
-    def __str__(self):
+    def __str__(self) -> str:
         return self.desc()
 
 
-class Weather_Types(AuxiliarParser):
-    def __init__(self, api: IPMA_API):
-        super().__init__(api, "type")
+class Weather_Types(TypeParser[Weather_Type]):
+    def __init__(self, api: IPMA_API) -> None:
+        super().__init__(api)
         self.endpoint = "https://api.ipma.pt/open-data/weather-type-classe.json"
-        self.order = lambda d: abs(d.id)
 
-    def _data_to_obj_list(self, raw):
+    def _data_to_obj_list(self, raw: Any) -> list[Weather_Type]:
         return [
             Weather_Type(
                 id=w["idWeatherType"],
@@ -227,19 +249,18 @@ class Wind_Speed_Daily_Type:
     en: str
     pt: str
 
-    def desc(self, lang="pt"):
+    def desc(self, lang: str = "pt") -> str:
         if lang == "pt":
             return self.pt
         return self.en
 
 
-class Wind_Speed_Daily_Types(AuxiliarParser):
-    def __init__(self, api: IPMA_API):
-        super().__init__(api, "type")
+class Wind_Speed_Daily_Types(TypeParser[Wind_Speed_Daily_Type]):
+    def __init__(self, api: IPMA_API) -> None:
+        super().__init__(api)
         self.endpoint = "https://api.ipma.pt/open-data/wind-speed-daily-classe.json"
-        self.order = lambda d: abs(d.id)
 
-    def _data_to_obj_list(self, raw):
+    def _data_to_obj_list(self, raw: Any) -> list[Wind_Speed_Daily_Type]:
         return [
             Wind_Speed_Daily_Type(
                 id=int(w["classWindSpeed"]),
@@ -256,19 +277,18 @@ class Precipitation_Class:
     en: str
     pt: str
 
-    def desc(self, lang="pt"):
+    def desc(self, lang: str = "pt") -> str:
         if lang == "pt":
             return self.pt
         return self.en
 
 
-class Precipitation_Classes(AuxiliarParser):
-    def __init__(self, api: IPMA_API):
-        super().__init__(api, "type")
+class Precipitation_Classes(TypeParser[Precipitation_Class]):
+    def __init__(self, api: IPMA_API) -> None:
+        super().__init__(api)
         self.endpoint = "https://api.ipma.pt/open-data/precipitation-classe.json"
-        self.order = lambda d: abs(d.id)
 
-    def _data_to_obj_list(self, raw):
+    def _data_to_obj_list(self, raw: Any) -> list[Precipitation_Class]:
         return [
             Precipitation_Class(
                 id=int(w["classPrecInt"]),

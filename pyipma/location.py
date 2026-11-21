@@ -1,7 +1,10 @@
 """Representation of a Weather Station from IPMA."""
+from __future__ import annotations
 import logging
 
+from .api import IPMA_API
 from .auxiliar import (
+    District,
     Districts,
     Forecast_Location,
     Forecast_Locations,
@@ -10,12 +13,12 @@ from .auxiliar import (
     Station,
     Stations,
 )
-from .forecast import Forecast_days
-from .observation import Observations
-from .sea_forecast import SeaForecasts
-from .rcm import RCM_day
-from .uv import UV_risks
-from .warnings import Warnings
+from .forecast import Forecast, Forecast_days
+from .observation import Observation, Observations
+from .sea_forecast import SeaForecast, SeaForecasts
+from .rcm import RCM, RCM_day
+from .uv import UV, UV_risks
+from .warnings import Warning, Warnings
 
 LOGGER = logging.getLogger(__name__)  # pylint: disable=invalid-name
 
@@ -29,16 +32,18 @@ class Location:
         longitude: float,
         forecast_locations: list[Forecast_Location],
         observation_stations: list[Station],
-        sea_stations: list[Sea_Location],
-    ):
+        sea_stations: list[Sea_Location] | None,
+    ) -> None:
         self.coordinates = (longitude, latitude)
         self.forecast_locations = forecast_locations
         self.observation_stations = observation_stations
         self.sea_stations = sea_stations
-        self.districts = None
+        self.districts: list[District] | None = None
 
     @classmethod
-    async def get(cls, api, lon, lat, sea_stations=False):
+    async def get(
+        cls, api: IPMA_API, lon: float, lat: float, sea_stations: bool = False,
+    ) -> Location:
         """Retrieve the nearest location and associated station."""
 
         forecast_locations = Forecast_Locations(api)
@@ -61,59 +66,59 @@ class Location:
         return Location(lat, lon, near_locations, near_stations, near_sea_locations)
 
     @property
-    def name(self):
+    def name(self) -> str:
         """Location name."""
         return self.forecast_locations[0].local
 
     @property
-    def global_id_local(self):
+    def global_id_local(self) -> int:
         """Global identifier of the location as defined by IPMA."""
         return self.forecast_locations[0].globalIdLocal
 
     @property
-    def station(self):
+    def station(self) -> str:
         """Name of the weather station."""
         return self.observation_stations[0].localEstacao
 
     @property
-    def id_station(self):
+    def id_station(self) -> int:
         """Global identifier of the location as defined by IPMA."""
         return self.observation_stations[0].idEstacao
 
     @property
-    def station_latitude(self):
+    def station_latitude(self) -> float:
         """Weather station latitude."""
         return self.observation_stations[0].coordinates[1]
 
     @property
-    def station_longitude(self):
+    def station_longitude(self) -> float:
         """Weather station longitude."""
         return self.observation_stations[0].coordinates[0]
 
     @property
-    def sea_station_name(self):
+    def sea_station_name(self) -> str | None:
         """Sea station name."""
         if self.sea_stations is not None:
             return self.sea_stations[0].local
         return None
 
     @property
-    def sea_station_global_id_local(self):
+    def sea_station_global_id_local(self) -> int | None:
         """Global identifier of the location as defined by IPMA."""
         if self.sea_stations is not None:
             return self.sea_stations[0].globalIdLocal
         return None
 
-    async def get_districts(self, api):
+    async def get_districts(self, api: IPMA_API) -> list[District]:
         if self.districts is None:
             self.districts = await Districts(api).get(*self.coordinates)
 
         return self.districts
 
-    async def forecast(self, api, period=24):
+    async def forecast(self, api: IPMA_API, period: int = 24) -> list[Forecast]:
         """Retrieve forecasts of location."""
         forecast_days = Forecast_days(api)
-        forecasts = []
+        forecasts: list[Forecast] = []
 
         for forecast_location in self.forecast_locations[:10]:
             try:
@@ -128,7 +133,7 @@ class Location:
 
         return forecasts
 
-    async def observation(self, api):
+    async def observation(self, api: IPMA_API) -> Observation | None:
         """Retrieve observation of Estacao."""
         obs = Observations(api)
         for station in self.observation_stations[:10]:
@@ -144,12 +149,12 @@ class Location:
         LOGGER.error("Could not retrieve a valid observation for %s", self.name)
         return None
 
-    async def sea_forecast(self, api):
+    async def sea_forecast(self, api: IPMA_API) -> list[SeaForecast]:
         """Retrieve today's sea forecast for closest sea location."""
         forecast_3days = SeaForecasts(api)
-        forecasts = []
+        forecasts: list[SeaForecast] = []
 
-        for sea_location in self.sea_stations[:10]:
+        for sea_location in (self.sea_stations or [])[:10]:
             try:
                 forecasts = await forecast_3days.get(sea_location.globalIdLocal)
                 break
@@ -160,7 +165,7 @@ class Location:
 
         return forecasts
 
-    async def fire_risk(self, api, day=0):
+    async def fire_risk(self, api: IPMA_API, day: int = 0) -> RCM | None:
         """Retrieve Fire Risk (RCM) for DICO region closest to the current location."""
         rcms = RCM_day(api, day)
         risk = None
@@ -178,7 +183,7 @@ class Location:
 
         return risk
 
-    async def uv_risk(self, api):
+    async def uv_risk(self, api: IPMA_API) -> UV | None:
         """Retrieve UV Risk for the current location."""
         uvs = UV_risks(api)
         district_id = None
@@ -198,11 +203,12 @@ class Location:
             )
 
         return None
-    
-    async def warnings(self, api):
+
+    async def warnings(self, api: IPMA_API) -> list[Warning] | None:
         """Retrieve Warnings for the current location."""
 
         warnings = Warnings(api)
+        area_id: str | None = None
 
         try:
             districts = await self.get_districts(api)
@@ -219,6 +225,3 @@ class Location:
             )
 
         return None
-
-
-

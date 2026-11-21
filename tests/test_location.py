@@ -110,7 +110,7 @@ async def test_location_sea_station_properties_and_warnings(static_api):
     ]
 
 
-def test_location_without_sea_stations_returns_none():
+async def test_location_without_sea_stations_returns_none():
     location = Location(
         latitude=40.6413,
         longitude=-8.6535,
@@ -125,6 +125,17 @@ def test_location_without_sea_stations_returns_none():
 
     assert location.sea_station_name is None
     assert location.sea_station_global_id_local is None
+    assert await location.sea_forecast(None) == []
+
+
+async def test_location_warnings_returns_none_when_district_lookup_fails(monkeypatch):
+    async def failing_districts(self, api):
+        raise RuntimeError("district lookup failed")
+
+    monkeypatch.setattr(Location, "get_districts", failing_districts)
+    location = Location(40.6413, -8.6535, [], [], None)
+
+    assert await location.warnings(None) is None
 
 
 async def test_location_get_can_include_sea_stations(monkeypatch):

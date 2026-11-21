@@ -10,66 +10,66 @@ from .auxiliar import Sea_Location, Sea_Locations
 class SeaForecast:
     """Represents a Sea Forecast."""
 
-    wavePeriodMin: float
-    location: Sea_Locations
-    totalSeaMax: float
-    waveHighMax: float
-    waveHighMin: float
-    wavePeriodMax: float
-    totalSeaMin: float
-    sstMax: float
+    wavePeriodMin: float | None
+    location: Sea_Location
+    totalSeaMax: float | None
+    waveHighMax: float | None
+    waveHighMin: float | None
+    wavePeriodMax: float | None
+    totalSeaMin: float | None
+    sstMax: float | None
     predWaveDir: str
-    sstMin: float
+    sstMin: float | None
     coordinates: tuple[float, float]
     forecastDate: datetime.datetime
     dataUpdate: datetime.datetime
 
     @property
-    def min_swell_period(self):
+    def min_swell_period(self) -> float | None:
         """Minimum daily peak period, associated with swell (seconds)."""
         return self.wavePeriodMin
 
     @property
-    def max_swell_period(self):
+    def max_swell_period(self) -> float | None:
         """Maximum daily peak period, associated with swell (seconds)."""
         return self.wavePeriodMax
 
     @property
-    def min_swell_high(self):
+    def min_swell_high(self) -> float | None:
         """Minimum daily swell high (meters)."""
         return self.waveHighMin
 
     @property
-    def max_swell_high(self):
+    def max_swell_high(self) -> float | None:
         """Maximum daily swell high (meters)."""
         return self.waveHighMax
 
     @property
-    def wave_direction(self):
+    def wave_direction(self) -> str:
         """Predominant wave direction."""
         return self.predWaveDir
 
     @property
-    def max_wave_high(self):
+    def max_wave_high(self) -> float | None:
         """Maximum daily wave high (meters)."""
         return self.totalSeaMax
 
     @property
-    def min_wave_high(self):
+    def min_wave_high(self) -> float | None:
         """Minimum daily wave high (meters)."""
         return self.totalSeaMin
 
     @property
-    def max_temperature(self):
+    def max_temperature(self) -> float | None:
         """Maximum sea surface temperature (ºC)."""
         return self.sstMax
 
     @property
-    def min_temperature(self):
+    def min_temperature(self) -> float | None:
         """Minimum sea surface temperature (ºC)."""
         return self.sstMin
 
-    def __str__(self):
+    def __str__(self) -> str:
         return (
             f"Sea forecast for {self.location} at {self.dataUpdate.strftime('%Y-%m-%d %H:%M')}: \n"
             f"Minimum sea temperature : {self.min_temperature}º \n"
@@ -82,18 +82,18 @@ class SeaForecasts:
     def __init__(
         self,
         api: IPMA_API,
-    ):
+    ) -> None:
         """
         periodo: 1: 3days, 3: 5days, 24: 10days
         """
-        self.data = None
+        self.data: list[SeaForecast] | None = None
         self.api = api
-        self.owner = None
-        self.country = None
+        self.owner: str | None = None
+        self.country: str | None = None
 
         self.sea_locations = Sea_Locations(api)
 
-    async def get(self, globalIdLocal):
+    async def get(self, globalIdLocal: int) -> list[SeaForecast]:
         self.data = []
         for day in range(3):
             raw = await self.api.retrieve(

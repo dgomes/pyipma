@@ -1,10 +1,10 @@
 """Representation of Warnings from IPMA."""
 from dataclasses import dataclass
 from datetime import datetime
+from typing import Any
 
 from . import IPMAException
 from .api import IPMA_API
-from .auxiliar import AuxiliarParser
 
 
 @dataclass
@@ -18,20 +18,20 @@ class Warning:
     awarenessLevelID: str
     endTime: datetime
 
-    def __str__(self):
+    def __str__(self) -> str:
         return f"{self.text} - {self.awarenessTypeName} - {self.startTime} - {self.endTime}"
 
 
 class Warnings:
     """Represents a Warnings end point that returns Warning objects."""
 
-    def __init__(self, api: IPMA_API):
+    def __init__(self, api: IPMA_API) -> None:
         self.api = api
         self.endpoint = (
             f"https://api.ipma.pt/open-data/forecast/warnings/warnings_www.json"
         )
 
-    def _data_to_obj_list(self, raw):
+    def _data_to_obj_list(self, raw: list[dict[str, Any]]) -> list[Warning]:
         # awarenessLevelID: cor / nível do aviso (e.g. "green", "yellow", "orange", "red", só existem avisos para níveis diferentes de "green", ou seja, "yellow", "orange", "red")
 
         return [
@@ -47,7 +47,7 @@ class Warnings:
             if w["awarenessLevelID"] != "green"
         ]
 
-    async def get(self, area: str):
+    async def get(self, area: str) -> list[Warning]:
         """Retrieve warnings for a given area."""
         raw = await self.api.retrieve(url=self.endpoint)
 

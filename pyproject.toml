@@ -26,6 +26,7 @@ classifiers = [
     "Programming Language :: Python :: 3.12",
     "Programming Language :: Python :: 3.13",
     "Topic :: Software Development :: Libraries :: Python Modules",
+    "Typing :: Typed",
 ]
 
 [project.urls]
@@ -40,10 +41,12 @@ test = [
 dev = [
     "build",
     "flake8",
+    "mypy>=1.10",
     "pytest",
     "pytest-asyncio",
     "pytest-cov",
     "twine",
+    "typing-extensions>=4.1",
 ]
 
 [tool.setuptools]
@@ -51,3 +54,15 @@ packages = ["pyipma"]
 
 [tool.setuptools.dynamic]
 version = { attr = "pyipma.__version__" }
+
+[tool.setuptools.package-data]
+pyipma = ["py.typed"]
+
+[tool.mypy]
+files = ["pyipma", "tests/typing"]
+python_version = "3.10"
+strict = true
+
+[[tool.mypy.overrides]]
+module = ["geopy", "geopy.*"]
+ignore_missing_imports = true

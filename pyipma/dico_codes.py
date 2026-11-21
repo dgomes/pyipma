@@ -1,6 +1,6 @@
 """DICO Codes."""
 
-DICO = {
+DICO: dict[str, tuple[str, str]] = {
     "0101": ("Águeda", "AVEIRO"),
     "0102": ("Albergaria-a-Velha", "AVEIRO"),
     "0103": ("Anadia", "AVEIRO"),

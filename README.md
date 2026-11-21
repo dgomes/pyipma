@@ -57,6 +57,23 @@ expose `forecast_date` and `run_date` as dates and `update_date` as a datetime.
 Auxiliary parsers and `SeaForecasts` also retain the API's `owner` and `country`
 metadata after retrieval.
 
+## Type checking
+
+The library ships inline type annotations and a `py.typed` marker for downstream
+type checkers. Parsed models and parser methods expose concrete return types,
+including `None` for unavailable values. The low-level `IPMA_API.retrieve()`
+method returns dynamic JSON or text; use the parsers for typed results.
+
+Install development dependencies and run the strict type checks:
+
+```sh
+venv/bin/python -m pip install -e ".[dev]"
+venv/bin/python -m mypy
+```
+
+These checks cover the library and consumer examples in `tests/typing` and run
+in CI alongside the live API tests.
+
 ## Running tests
 
 Install the test dependencies in a virtual environment, then run pytest:

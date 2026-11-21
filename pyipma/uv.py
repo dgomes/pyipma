@@ -14,8 +14,8 @@ class UV:
     globalIdLocal: int
     iUv: float
 
-    def __str__(self):
-        def iUv2str(code):
+    def __str__(self) -> str:
+        def iUv2str(code: float) -> tuple[str, str]:
             if code <= 2:
                 return "Baixo", "Não é necessário proteção"
             if code <= 5:
@@ -43,11 +43,11 @@ class UV:
 class UV_risks:
     """Represents a Risk of UV endpoint that retrieves UV objects."""
 
-    def __init__(self, api: IPMA_API):
+    def __init__(self, api: IPMA_API) -> None:
         self.api = api
         self.endpoint = f"https://api.ipma.pt/open-data/forecast/meteorology/uv/uv.json"
 
-    async def get(self, globalIdLocal=None):
+    async def get(self, globalIdLocal: int | None = None) -> list[UV]:
         """Retrive UV risk for globalIdLocal, or all."""
         raw = await self.api.retrieve(url=self.endpoint)
 

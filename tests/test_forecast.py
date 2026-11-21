@@ -109,3 +109,7 @@ def test_forecast_string_with_humidity_and_max_temperature_fallback():
     forecast.tMax = 0.0
     assert forecast.temperature == 0.0
     assert forecast.max_temperature == 0.0
+
+    forecast.tMed = None
+    forecast.tMax = None
+    assert forecast.temperature is None

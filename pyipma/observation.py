@@ -39,46 +39,46 @@ class Observation:
     idEstacao: int
 
     @property
-    def temperature(self):
+    def temperature(self) -> Optional[float]:
         """Temperatura do ar registada a 1.5 metros de altura, média da hora (ºC)."""
         return self.temperatura
 
     @property
-    def radiation(self):
+    def radiation(self) -> Optional[float]:
         """Radiação solar (kJ/m2)."""
         return self.radiacao
 
     @property
-    def wind_intensity_km(self):
+    def wind_intensity_km(self) -> Optional[float]:
         """Intensidade do vento registada a 10 metros de altura (km/h)."""
         return self.intensidadeVentoKM
 
     @property
-    def wind_intensity(self):
+    def wind_intensity(self) -> Optional[float]:
         """Intensidade do vento registada a 10 metros de altura (m/s)."""
         return self.intensidadeVento
 
     @property
-    def wind_direction(self):
+    def wind_direction(self) -> str:
         """Rumo predominante do vento registado a 10 metros de altura."""
         return WIND_DIRECTION_ID[self.idDireccVento]
 
     @property
-    def accumulated_precipitation(self):
+    def accumulated_precipitation(self) -> Optional[float]:
         """Precipitação registada a 1.5 metros de altura, valor acumulado da hora (mm)."""
         return self.precAcumulada
 
     @property
-    def humidity(self):
+    def humidity(self) -> Optional[float]:
         """Humidade relativa do ar registada a 1.5 metros de altura, média da hora (%)."""
         return self.humidade
 
     @property
-    def pressure(self):
+    def pressure(self) -> Optional[float]:
         """Pressão atmosférica, reduzida ao nível médio do mar (NMM), média da hora (hPa)."""
         return self.pressao
 
-    def __str__(self):
+    def __str__(self) -> str:
         """Representation of a weather Observation in EN."""
         return f"Weather in {self.idEstacao} at {self.timestamp}: {self.temperature}°C, {self.humidity}%"
 
@@ -89,16 +89,16 @@ class Observations:
     def __init__(
         self,
         api: IPMA_API,
-    ):
-        self.data = None
+    ) -> None:
+        self.data: list[Observation] | None = None
         self.api = api
 
-    async def get(self, idEstacao):
+    async def get(self, idEstacao: int) -> list[Observation]:
         """Retrieve observations from IPMA."""
         raw = await self.api.retrieve(
             url="https://api.ipma.pt/open-data/observation/meteorology/stations/observations.json"
         )
-        idEstacao = str(idEstacao)
+        station_id = str(idEstacao)
 
         self.data = sorted(
             [
@@ -116,7 +116,7 @@ class Observations:
                 )
                 for timestamp in raw
                 for estacao, r in raw[timestamp].items()
-                if r is not None and estacao == idEstacao
+                if r is not None and estacao == station_id
             ],
             key=lambda d: d.timestamp,
         )
