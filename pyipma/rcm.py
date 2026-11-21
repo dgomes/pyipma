@@ -4,6 +4,7 @@ from datetime import date, datetime
 from typing import Any
 
 from .api import IPMA_API
+from ._parsing import number
 from .auxiliar import LocationParser
 from .dico_codes import DICO
 
@@ -13,7 +14,7 @@ class RCM:
     """Represents fire risk per region DICO."""
 
     dico: str
-    rcm: int
+    rcm: int | None
     coordinates: tuple[float, float]
     dataPrev: date | None = None
     dataRun: date | None = None
@@ -43,14 +44,17 @@ class RCM:
             5: "Risco máximo",
         }
 
-        return f"{RCM_str[self.rcm]} para {DICO[self.dico][0]}"
+        description = RCM_str.get(self.rcm, "Risco indisponível") if self.rcm is not None else "Risco indisponível"
+        region = DICO[self.dico][0] if self.dico in DICO else self.dico
+        return f"{description} para {region}"
 
 
 class RCM_day(LocationParser[RCM]):
     """Represents a Risk of Fire endpoint that retrieves RCM objects."""
 
     def __init__(self, api: IPMA_API, day: int = 0) -> None:
-        assert day in [0, 1]
+        if day not in (0, 1):
+            raise ValueError("Fire risk day must be 0 (today) or 1 (tomorrow)")
         super().__init__(api)
         self.endpoint = (
             f"http://api.ipma.pt/open-data/forecast/meteorology/rcm/rcm-d{day}.json"
@@ -63,11 +67,11 @@ class RCM_day(LocationParser[RCM]):
         return [
             RCM(
                 d["dico"],
-                d["data"]["rcm"],
+                number(d["data"].get("rcm"), int),
                 (float(d["latitude"]), float(d["longitude"])),
                 dataPrev=forecast_date,
                 dataRun=run_date,
                 fileDate=update_date,
             )
-            for dico, d in raw["local"].items()
+            for d in raw["local"].values()
         ]
