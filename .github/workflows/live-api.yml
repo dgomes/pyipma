@@ -1,0 +1,43 @@
+name: Live API compatibility
+
+on:
+  schedule:
+    # Run daily at 08:23 UTC, away from the busiest scheduling times.
+    - cron: "23 8 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: live-api-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  live-api:
+    name: Check library against live IPMA API
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - uses: actions/checkout@v6
+      - name: Set up Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: "3.13"
+          cache: pip
+          cache-dependency-path: pyproject.toml
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -e ".[test]"
+      - name: Test live API compatibility
+        run: python -m pytest -ra --junitxml=test-results/live-api.xml
+      - name: Upload test report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: live-api-test-results
+          path: test-results/live-api.xml
+          if-no-files-found: warn
+          retention-days: 14

@@ -90,6 +90,13 @@ Live field-coverage tests also fail when supported endpoints add properties that
 the library does not yet model. These checks cover the endpoints used by pyipma;
 they do not discover unrelated IPMA services.
 
+The **Live API compatibility** GitHub Actions workflow runs this suite daily at
+08:23 UTC and can also be started from the Actions tab using **Run workflow**.
+It checks the current library against live IPMA responses, including field
+coverage and parsing compatibility. API outages also fail the run. Each run
+uploads a JUnit test report as the `live-api-test-results` artifact for diagnosis.
+Scheduled runs use the repository's default branch.
+
 ## Changelog
 
 * 3.0.10 - Update aiohttp support and response handling
