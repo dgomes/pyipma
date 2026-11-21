@@ -59,7 +59,8 @@ consistency checks against the code and workflows rather than the live suite.
 ## Documentation and releases
 
 Keep README examples aligned with method signatures and missing-data behavior.
-Document changes since the last release under an Unreleased changelog entry.
+Maintain release history in `CHANGELOG.md`, linked from the README. Document
+changes since the last release under an Unreleased entry in that file.
 The package version is defined by `pyipma.__version__` and read dynamically by
 setuptools; do not invent a release number for unreleased work. Package publishing
 is configured for `v*` tags and created GitHub releases.
