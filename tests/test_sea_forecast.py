@@ -53,6 +53,8 @@ async def test_observations():
 
         forecast = await forecast_3days.get(1160926)
 
+        assert forecast_3days.owner == "IPMA"
+        assert forecast_3days.country == "PT"
         assert forecast
         assert all(isinstance(day_forecast, SeaForecast) for day_forecast in forecast)
         assert_sea_forecast_properties(forecast[0])

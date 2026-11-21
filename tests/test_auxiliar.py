@@ -121,6 +121,10 @@ async def test_wind_speed_daily():
 
         assert_type_properties(wind_type)
         assert_type_properties(missing_wind_type)
+        assert isinstance(wind_type, Wind_Speed_Daily_Type)
+        assert isinstance(missing_wind_type, Wind_Speed_Daily_Type)
+        assert wind_speed_daily.owner == "IPMA"
+        assert wind_speed_daily.country == "PT"
 
 
 @pytest.mark.asyncio
@@ -135,3 +139,7 @@ async def test_precipitation():
 
         assert_type_properties(precipitation_type)
         assert_type_properties(missing_precipitation_type)
+        assert isinstance(precipitation_type, Precipitation_Class)
+        assert isinstance(missing_precipitation_type, Precipitation_Class)
+        assert precipitation_classes.owner == "IPMA"
+        assert precipitation_classes.country == "PT"

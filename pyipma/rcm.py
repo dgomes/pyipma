@@ -1,5 +1,6 @@
 """Representation of a Fire Risk from IPMA."""
 from dataclasses import dataclass
+from datetime import date, datetime
 
 from .api import IPMA_API
 from .auxiliar import AuxiliarParser
@@ -13,6 +14,24 @@ class RCM:
     dico: str
     rcm: int
     coordinates: tuple[float, float]
+    dataPrev: date | None = None
+    dataRun: date | None = None
+    fileDate: datetime | None = None
+
+    @property
+    def forecast_date(self):
+        """Date for which the fire risk is forecast."""
+        return self.dataPrev
+
+    @property
+    def run_date(self):
+        """Date of the model run."""
+        return self.dataRun
+
+    @property
+    def update_date(self):
+        """Date and time when IPMA updated the file."""
+        return self.fileDate
 
     def __str__(self):
         RCM_str = {
@@ -37,11 +56,17 @@ class RCM_day(AuxiliarParser):
         )
 
     def _data_to_obj_list(self, raw):
+        forecast_date = date.fromisoformat(raw["dataPrev"])
+        run_date = date.fromisoformat(raw["dataRun"])
+        update_date = datetime.fromisoformat(raw["fileDate"])
         return [
             RCM(
                 d["dico"],
                 d["data"]["rcm"],
                 (float(d["latitude"]), float(d["longitude"])),
+                dataPrev=forecast_date,
+                dataRun=run_date,
+                fileDate=update_date,
             )
             for dico, d in raw["local"].items()
         ]

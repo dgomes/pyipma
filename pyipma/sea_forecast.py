@@ -88,6 +88,8 @@ class SeaForecasts:
         """
         self.data = None
         self.api = api
+        self.owner = None
+        self.country = None
 
         self.sea_locations = Sea_Locations(api)
 
@@ -97,6 +99,8 @@ class SeaForecasts:
             raw = await self.api.retrieve(
                 url=f"http://api.ipma.pt/open-data/forecast/oceanography/daily/hp-daily-sea-forecast-day{day}.json"
             )
+            self.owner = raw.get("owner")
+            self.country = raw.get("country")
             forecast_date = datetime.datetime.strptime(raw["forecastDate"], "%Y-%m-%d")
             dataUpdate = datetime.datetime.strptime(
                 raw["dataUpdate"], "%Y-%m-%dT%H:%M:%S"

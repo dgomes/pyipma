@@ -39,6 +39,24 @@ async def main():
 asyncio.get_event_loop().run_until_complete(main())
 ```
 
+Forecasts expose `precipitation_intensity` (the API's `idIntensidadePrecipita`
+class code), `uv_index`, and `wind_speed_class`. To resolve an intensity code
+to an English or Portuguese description, use
+`await Precipitation_Classes(api).get(forecast.precipitation_intensity)` from
+`pyipma.auxiliar` when the code is not `None`. Class definitions are listed in
+the [IPMA API documentation](https://api.ipma.pt/).
+
+Coastal forecasts also expose `sea_temperature`, `wave_direction`, `wave_height`,
+`swell_height`, `swell_period`, and `peak_period` when returned by IPMA. These
+properties are `None` for periods or locations without marine data. The original
+API field names remain available on the forecast object.
+
+Forecast humidity, UV index, and feels-like temperature are numeric values;
+missing values (`-99`) become `None`, and zero remains valid. Fire-risk objects
+expose `forecast_date` and `run_date` as dates and `update_date` as a datetime.
+Auxiliary parsers and `SeaForecasts` also retain the API's `owner` and `country`
+metadata after retrieval.
+
 ## Running tests
 
 Install the test dependencies in a virtual environment, then run pytest:
@@ -51,6 +69,9 @@ venv/bin/python -m pytest
 
 Tests call IPMA's live API and require internet access. Endpoint failures, response
 schema changes, and parsing errors fail the suite so upstream changes are visible.
+Live field-coverage tests also fail when supported endpoints add properties that
+the library does not yet model. These checks cover the endpoints used by pyipma;
+they do not discover unrelated IPMA services.
 
 ## Changelog
 

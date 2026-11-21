@@ -41,6 +41,13 @@ class Forecast:
     dataPrev: datetime.datetime
     ddVento: str
     utci: Optional[float] = None
+    idIntensidadePrecipita: Optional[int] = None
+    dirOndulacao: Optional[str] = None
+    marTotal: Optional[float] = None
+    ondulacao: Optional[float] = None
+    periodOndulacao: Optional[float] = None
+    periodoPico: Optional[float] = None
+    tempAguaMar: Optional[float] = None
 
     @property
     def update_date(self):
@@ -60,7 +67,7 @@ class Forecast:
     @property
     def temperature(self):
         """Average Temperature."""
-        if self.tMed:
+        if self.tMed is not None:
             return self.tMed
         # Create an average with MIN and MAX
         LOGGER.debug("Temperature not available, averaging Max and Min")
@@ -72,7 +79,7 @@ class Forecast:
     @property
     def max_temperature(self):
         """Maximum Temperature."""
-        return self.tMax if self.tMax else self.tMed
+        return self.tMax if self.tMax is not None else self.tMed
 
     @property
     def min_temperature(self):
@@ -93,6 +100,51 @@ class Forecast:
     def precipitation_probability(self):
         """Probability of raining more then 0.3mm."""
         return self.probabilidadePrecipita
+
+    @property
+    def precipitation_intensity(self):
+        """Precipitation intensity class code (see Precipitation_Classes)."""
+        return self.idIntensidadePrecipita
+
+    @property
+    def uv_index(self):
+        """Forecast ultraviolet index."""
+        return self.iUv
+
+    @property
+    def wind_speed_class(self):
+        """Wind speed class code (see Wind_Speed_Daily_Types)."""
+        return self.idFfxVento
+
+    @property
+    def wave_direction(self):
+        """Forecast wave direction, when available for coastal locations."""
+        return self.dirOndulacao
+
+    @property
+    def wave_height(self):
+        """Total significant wave height in meters."""
+        return self.marTotal
+
+    @property
+    def swell_height(self):
+        """Swell height in meters."""
+        return self.ondulacao
+
+    @property
+    def swell_period(self):
+        """Swell period in seconds."""
+        return self.periodOndulacao
+
+    @property
+    def peak_period(self):
+        """Peak wave period in seconds."""
+        return self.periodoPico
+
+    @property
+    def sea_temperature(self):
+        """Sea water temperature in degrees Celsius."""
+        return self.tempAguaMar
 
     @property
     def wind_direction(self):
@@ -149,30 +201,38 @@ class Forecast_days:
         self.data = sorted(
             [
                 Forecast(
-                    tMed=float(r["tMed"]) if r.get("tMed") else None,
-                    tMin=float(r["tMin"]) if r.get("tMin") else None,
-                    ffVento=float(r["ffVento"]) if r.get("ffVento") else None,
+                    tMed=self._number(r.get("tMed")),
+                    tMin=self._number(r.get("tMin")),
+                    ffVento=self._number(r.get("ffVento")),
                     idFfxVento=r.get("idFfxVento"),
                     dataUpdate=datetime.datetime.strptime(
                         r["dataUpdate"], "%Y-%m-%dT%H:%M:%S"
                     ),
-                    tMax=float(r["tMax"]) if r.get("tMax") else None,
-                    iUv=r.get("iUv"),
+                    tMax=self._number(r.get("tMax")),
+                    iUv=self._number(r.get("iUv")),
                     intervaloHora=r.get("intervaloHora"),
                     idTipoTempo=await self.weather_type.get(int(r["idTipoTempo"])),
-                    hR=r.get("hR"),
+                    hR=self._number(r.get("hR")),
                     location=await self.forecast_locations.find(
                         int(r["globalIdLocal"])
                     ),
-                    probabilidadePrecipita=float(r["probabilidadePrecipita"])
-                    if r["probabilidadePrecipita"] != -99
-                    else None,
+                    probabilidadePrecipita=self._number(r.get("probabilidadePrecipita")),
                     idPeriodo=r["idPeriodo"],
                     dataPrev=datetime.datetime.strptime(
                         r["dataPrev"], "%Y-%m-%dT%H:%M:%S"
                     ).replace(tzinfo=datetime.timezone.utc),
                     ddVento=r["ddVento"],
-                    utci=r.get("utci"),
+                    utci=self._number(r.get("utci")),
+                    idIntensidadePrecipita=self._number(
+                        r.get("idIntensidadePrecipita"), int
+                    ),
+                    dirOndulacao=r.get("dirOndulacao")
+                    if r.get("dirOndulacao") not in ("", -99, "-99") else None,
+                    marTotal=self._number(r.get("marTotal")),
+                    ondulacao=self._number(r.get("ondulacao")),
+                    periodOndulacao=self._number(r.get("periodOndulacao")),
+                    periodoPico=self._number(r.get("periodoPico")),
+                    tempAguaMar=self._number(r.get("tempAguaMar")),
                 )
                 for r in raw
                 if r["idPeriodo"] == period
@@ -193,3 +253,11 @@ class Forecast_days:
         )
 
         return self.data
+
+    @staticmethod
+    def _number(value, number_type=float):
+        """Convert API numbers, preserving zero and treating -99 as missing."""
+        if value is None or value == "":
+            return None
+        value = number_type(value)
+        return None if value == -99 else value

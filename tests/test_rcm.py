@@ -1,4 +1,5 @@
 import pytest
+from datetime import date, datetime
 
 from pyipma.rcm import RCM_day, RCM
 
@@ -11,6 +12,9 @@ async def test_rcm(live_api, day):
     for risk in risks:
         assert isinstance(risk, RCM)
         assert isinstance(risk.dico, str)
+        assert isinstance(risk.forecast_date, date)
+        assert isinstance(risk.run_date, date)
+        assert isinstance(risk.update_date, datetime)
         assert risk.rcm in range(1, 6)
         assert isinstance(risk.coordinates, tuple)
         assert len(risk.coordinates) == 2

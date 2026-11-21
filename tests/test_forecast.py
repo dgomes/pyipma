@@ -1,11 +1,13 @@
 import datetime
+import pytest
 
 from pyipma.auxiliar import Forecast_Location, Weather_Type
 from pyipma.forecast import Forecast, Forecast_days
 
 
-async def test_forecast(live_api):
-    forecasts = await Forecast_days(live_api).get(1010500, 24)
+@pytest.mark.parametrize("period", [1, 3, 24])
+async def test_forecast(live_api, period):
+    forecasts = await Forecast_days(live_api).get(1010500, period)
 
     assert forecasts
     assert [item.forecast_date for item in forecasts] == sorted(
@@ -14,13 +16,19 @@ async def test_forecast(live_api):
     for forecast in forecasts:
         assert isinstance(forecast, Forecast)
         assert forecast.location.globalIdLocal == 1010500
-        assert forecast.forecasted_hours == 24
+        assert forecast.forecasted_hours == period
         assert isinstance(forecast.forecast_date, datetime.datetime)
         assert forecast.forecast_date.tzinfo == datetime.timezone.utc
         assert isinstance(forecast.update_date, datetime.datetime)
         assert isinstance(forecast.weather_type, Weather_Type)
         assert isinstance(forecast.weather_type_description, str)
         assert isinstance(forecast.temperature, float)
+        assert forecast.precipitation_intensity is None or isinstance(
+            forecast.precipitation_intensity, int
+        )
+        assert forecast.wind_speed_class is None or isinstance(forecast.wind_speed_class, int)
+        for value in (forecast.uv_index, forecast.humidity, forecast.feels_like_temperature):
+            assert value is None or isinstance(value, float)
 
 
 def test_forecast_properties_and_string_without_humidity():
@@ -51,6 +59,7 @@ def test_forecast_properties_and_string_without_humidity():
         dataPrev=datetime.datetime(2022, 7, 29, tzinfo=datetime.timezone.utc),
         ddVento="NW",
         utci=18.0,
+        idIntensidadePrecipita=2,
     )
 
     assert forecast.update_date == forecast.dataUpdate
@@ -62,6 +71,9 @@ def test_forecast_properties_and_string_without_humidity():
     assert forecast.feels_like_temperature == 18.0
     assert forecast.humidity is None
     assert forecast.precipitation_probability == 25.0
+    assert forecast.precipitation_intensity == 2
+    assert forecast.uv_index == 5.0
+    assert forecast.wind_speed_class == 1
     assert forecast.wind_direction == "NW"
     assert forecast.wind_strength == 3.5
     assert forecast.weather_type == weather_type
@@ -92,3 +104,8 @@ def test_forecast_string_with_humidity_and_max_temperature_fallback():
     assert forecast.temperature == 12.0
     assert forecast.max_temperature == 12.0
     assert "80.0%" in str(forecast)
+
+    forecast.tMed = 0.0
+    forecast.tMax = 0.0
+    assert forecast.temperature == 0.0
+    assert forecast.max_temperature == 0.0

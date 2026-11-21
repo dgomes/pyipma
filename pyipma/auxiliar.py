@@ -12,12 +12,17 @@ class AuxiliarParser:
     def __init__(self, api: IPMA_API, type="location"):
         _TYPES = {"location": self.get_location, "type": self.get_type}
         self.data = None
+        self.owner = None
+        self.country = None
         self.api = api
         self.get = _TYPES[type]
 
     async def get_type(self, id):
         if not self.data:
             raw = await self.api.retrieve(url=self.endpoint)
+
+            self.owner = raw.get("owner")
+            self.country = raw.get("country")
 
             self.data = sorted(self._data_to_obj_list(raw), key=lambda d: abs(d.id))
 
@@ -32,6 +37,10 @@ class AuxiliarParser:
 
             if raw is None:
                 raise IPMAException(f"Could not retrieve location for {lon}, {lat}")
+
+            if isinstance(raw, dict):
+                self.owner = raw.get("owner")
+                self.country = raw.get("country")
 
             self.data = self._data_to_obj_list(raw)
 
@@ -232,7 +241,7 @@ class Wind_Speed_Daily_Types(AuxiliarParser):
 
     def _data_to_obj_list(self, raw):
         return [
-            Weather_Type(
+            Wind_Speed_Daily_Type(
                 id=int(w["classWindSpeed"]),
                 en=w["descClassWindSpeedDailyEN"],
                 pt=w["descClassWindSpeedDailyPT"],
@@ -261,7 +270,7 @@ class Precipitation_Classes(AuxiliarParser):
 
     def _data_to_obj_list(self, raw):
         return [
-            Weather_Type(
+            Precipitation_Class(
                 id=int(w["classPrecInt"]),
                 en=w["descClassPrecIntEN"],
                 pt=w["descClassPrecIntPT"],
